@@ -1,6 +1,12 @@
 import { useState, ChangeEvent } from 'react';
-import { apiClient, PredictionResponse } from './api/client';
+import { apiClient } from './api/client';
 import './App.css';
+
+interface PredictionResponse {
+  class_name: string;
+  confidence: number;
+  heatmap: string;
+}
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

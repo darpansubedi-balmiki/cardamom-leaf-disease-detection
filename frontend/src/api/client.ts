@@ -1,7 +1,7 @@
 /**
  * API client for communicating with the backend server.
  */
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
 
 // API base URL
 const API_BASE_URL = 'http://localhost:8000';
@@ -22,7 +22,7 @@ export interface HealthResponse {
  * API client class with configured axios instance.
  */
 class ApiClient {
-  private client: AxiosInstance;
+  private client: any;
 
   constructor(baseURL: string = API_BASE_URL) {
     this.client = axios.create({
