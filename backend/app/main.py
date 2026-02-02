@@ -8,7 +8,7 @@ from io import BytesIO
 import traceback
 
 from app.schemas import HealthResponse, PredictionResponse
-from app.models.cardamom_model import load_model, CLASS_NAMES
+from app.models.cardamom_model import load_model
 from app.models.u2net_segmenter import load_u2net, apply_background_removal
 from app.utils.image_preprocess import preprocess_image
 from app.utils.grad_cam import generate_gradcam_heatmap
@@ -33,6 +33,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Class names
+CLASS_NAMES = ["Colletotrichum Blight", "Phyllosticta Leaf Spot", "Healthy"]
 
 # Global variables for models
 classifier_model = None
@@ -116,7 +119,19 @@ async def predict(file: UploadFile = File(...)):
         
         # Generate Grad-CAM heatmap
         # Target the last convolutional layer (conv4)
-        target_layer = classifier_model.conv4[0]  # First Conv2d in conv4 block
+        # Get the last convolutional layer from EfficientNetV2
+        # EfficientNetV2 structure: backbone.features[-1] is the last conv block
+        target_layer = None
+        for module in classifier_model.backbone.features[-1].modules():
+            if isinstance(module, torch.nn.Conv2d):
+                target_layer = module
+
+        if target_layer is None:
+            # Fallback: find any last Conv2d layer
+            for name, module in classifier_model.named_modules():
+                if isinstance(module, torch.nn.Conv2d):
+                    target_layer = module
+                    
         heatmap = generate_gradcam_heatmap(
             classifier_model,
             input_tensor,

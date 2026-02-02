@@ -20,7 +20,7 @@ function App() {
    */
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    
+
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
@@ -53,7 +53,7 @@ function App() {
       setResult(response);
     } catch (err: any) {
       console.error('Prediction error:', err);
-      
+
       if (err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else if (err.code === 'ECONNABORTED') {
@@ -76,7 +76,7 @@ function App() {
     setPreviewUrl('');
     setError('');
     setResult(null);
-    
+
     // Clean up preview URL
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -102,7 +102,7 @@ function App() {
           <label htmlFor="file-input" className="file-label">
             📁 Choose Image
           </label>
-          
+
           {selectedFile && (
             <span className="file-name">{selectedFile.name}</span>
           )}
@@ -147,21 +147,21 @@ function App() {
         {result && (
           <div className="results-section">
             <h2>Results</h2>
-            
+
             <div className="result-card">
               <div className="result-info">
                 <div className="result-item">
                   <span className="label">Disease Class:</span>
                   <span className="value class-name">{result.class_name}</span>
                 </div>
-                
+
                 <div className="result-item">
                   <span className="label">Confidence:</span>
                   <span className="value confidence">
                     {(result.confidence * 100).toFixed(2)}%
                   </span>
                 </div>
-                
+
                 <div className="confidence-bar">
                   <div
                     className="confidence-fill"
@@ -186,7 +186,7 @@ function App() {
         )}
 
         <footer className="footer">
-          <p>Powered by PyTorch & FastAPI</p>
+          <p>Designed & Developed by Darpan Subedi</p>
         </footer>
       </div>
     </div>
