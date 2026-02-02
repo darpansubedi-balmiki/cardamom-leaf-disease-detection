@@ -1,8 +1,268 @@
 # Cardamom Leaf Disease Detection System
 
-A full-stack application for detecting diseases in cardamom leaves using deep learning. The system classifies images into three categories:
+A full-stack application for detecting diseases in cardamom leaves using deep learning. The system classifies leaf images into three categories:
 - **Colletotrichum Blight**
 - **Phyllosticta Leaf Spot**
 - **Healthy**
 
-The backend uses PyTorch with U2-Net for background removal and EfficientNetV2 for classification, along with Grad-CAM visualization. The frontend is a React TypeScript application built with Vite.
+## 🌟 Features
+
+- **Deep Learning Classification**: PyTorch-based CNN model for disease detection
+- **Grad-CAM Visualization**: Visual explanation showing which leaf regions influenced predictions
+- **Background Removal**: U2-Net integration (placeholder ready)
+- **Modern Web Interface**: React TypeScript frontend with responsive design
+- **Real-time Predictions**: Fast inference with confidence scores
+- **RESTful API**: FastAPI backend with automatic documentation
+
+## 🏗️ Architecture
+
+### Backend (FastAPI + PyTorch)
+- **Framework**: FastAPI with CORS support
+- **Model**: Placeholder CNN classifier (4 conv blocks, 3 output classes)
+- **Preprocessing**: ImageNet normalization, 224x224 resizing
+- **Visualization**: Grad-CAM heatmap generation
+- **Background Removal**: U2-Net placeholder (ready for integration)
+
+### Frontend (React + TypeScript + Vite)
+- **Framework**: React 19 with TypeScript
+- **Build Tool**: Vite for fast development
+- **HTTP Client**: Axios for API communication
+- **UI**: Modern gradient design, responsive layout
+- **Features**: Image upload, preview, results display, error handling
+
+## 📁 Project Structure
+
+```
+cardamom-leaf-disease-detection/
+├── backend/
+│   ├── app/
+│   │   ├── main.py              # FastAPI entry point
+│   │   ├── schemas.py           # Pydantic models
+│   │   ├── models/
+│   │   │   ├── cardamom_model.py      # CNN classifier
+│   │   │   └── u2net_segmenter.py     # Background removal
+│   │   └── utils/
+│   │       ├── image_preprocess.py    # Image preprocessing
+│   │       ├── grad_cam.py            # Grad-CAM implementation
+│   │       └── overlay.py             # Heatmap overlay
+│   ├── models/                  # Trained model weights (gitignored)
+│   ├── requirements.txt
+│   └── README.md
+│
+├── frontend/
+│   ├── src/
+│   │   ├── main.tsx            # React entry
+│   │   ├── App.tsx             # Main component
+│   │   ├── App.css             # Styles
+│   │   ├── index.css           # Global styles
+│   │   └── api/
+│   │       └── client.ts       # API client
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
+│
+├── .gitignore
+└── README.md
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Backend**:
+  - Python 3.8 or higher
+  - pip
+
+- **Frontend**:
+  - Node.js 18 or higher
+  - npm or yarn
+
+### Installation
+
+#### 1. Backend Setup
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On Linux/Mac:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+#### 2. Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+```
+
+### Running the Application
+
+#### Start Backend Server
+
+```bash
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+The backend API will be available at:
+- **API**: http://localhost:8000
+- **Interactive Docs**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+#### Start Frontend Development Server
+
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend will be available at: http://localhost:5173
+
+## 📡 API Endpoints
+
+### GET /health
+Health check endpoint.
+
+**Response:**
+```json
+{
+  "status": "ok"
+}
+```
+
+### POST /predict
+Upload an image for disease prediction.
+
+**Request:**
+- Content-Type: `multipart/form-data`
+- Body: `file` (image file)
+
+**Response:**
+```json
+{
+  "class_name": "Colletotrichum Blight",
+  "confidence": 0.85,
+  "heatmap": "base64_encoded_png_string"
+}
+```
+
+## 🎯 How It Works
+
+1. **Upload**: User selects a cardamom leaf image
+2. **Preprocessing**:
+   - Background removal (U2-Net - placeholder)
+   - Resize to 224x224
+   - Normalize with ImageNet statistics
+3. **Inference**: CNN model predicts disease class
+4. **Visualization**: Grad-CAM generates heatmap showing important regions
+5. **Results**: Display class name, confidence, and heatmap overlay
+
+## 🔧 Model Integration
+
+### Current State (Placeholder)
+
+The system currently uses placeholder models for demonstration:
+- **Classifier**: Simple 4-layer CNN with random weights
+- **U2-Net**: Passes images through unchanged
+
+### Integrating Trained Models
+
+When you have trained models:
+
+1. **Place Model Weights**:
+   - Save trained classifier as `backend/models/cardamom_model.pt`
+   - Save U2-Net as `backend/models/u2net.pth`
+
+2. **Update Model Architecture**:
+   - Modify `backend/app/models/cardamom_model.py` to match your architecture (e.g., EfficientNetV2)
+   - Implement U2-Net loading in `backend/app/models/u2net_segmenter.py`
+
+3. **Adjust Preprocessing** (if needed):
+   - Update `backend/app/utils/image_preprocess.py`
+
+The system will automatically detect and load trained weights if they exist in the models directory.
+
+## 🧪 Testing
+
+### Backend Testing
+
+```bash
+cd backend
+pytest
+```
+
+### Frontend Testing
+
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+### Manual Testing
+
+1. Start both servers
+2. Open http://localhost:5173
+3. Upload a test image
+4. Verify prediction results and heatmap display
+
+## 🎨 UI Features
+
+- **Modern Design**: Gradient background (purple/blue)
+- **Responsive**: Works on desktop and mobile
+- **Interactive**: Hover effects, loading states
+- **Informative**: Error messages, confidence visualization
+- **Visual Explanation**: Grad-CAM heatmap overlay
+
+## 🔐 Security Notes
+
+- File type validation on frontend and backend
+- CORS configured for specific origins
+- Request timeouts to prevent hanging
+- Input sanitization and error handling
+
+## 📝 Development Notes
+
+### Backend
+- Uses PyTorch hooks for Grad-CAM
+- FastAPI automatic API documentation
+- Proper error handling and logging
+- Device auto-detection (CUDA/CPU)
+
+### Frontend
+- TypeScript for type safety
+- Axios with 30s timeout
+- Memory cleanup (URL.revokeObjectURL)
+- Error boundary handling
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+MIT
+
+## 🙏 Acknowledgments
+
+- PyTorch team for the deep learning framework
+- FastAPI for the excellent web framework
+- React team for the UI library
+- U2-Net authors for background removal architecture
