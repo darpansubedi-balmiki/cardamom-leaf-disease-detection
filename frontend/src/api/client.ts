@@ -22,7 +22,7 @@ export interface HealthResponse {
  * API client class with configured axios instance.
  */
 class ApiClient {
-  private client: any;
+  private client: ReturnType<typeof axios.create>;
 
   constructor(baseURL: string = API_BASE_URL) {
     this.client = axios.create({
