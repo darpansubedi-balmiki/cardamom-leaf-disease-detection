@@ -1,9 +1,9 @@
 # Cardamom Leaf Disease Detection System
 
-A full-stack application for detecting diseases in cardamom leaves using deep learning. The system classifies leaf images into three categories:
-- **Colletotrichum Blight**
-- **Phyllosticta Leaf Spot**
-- **Healthy**
+A complete full-stack and mobile application system for detecting diseases in cardamom leaves using deep learning. The system classifies leaf images into three categories:
+- **Colletotrichum Blight** (कोलेटोट्रिकम ब्लाइट)
+- **Phyllosticta Leaf Spot** (फाइलोस्टिक्टा पात दाग)
+- **Healthy** (स्वस्थ)
 
 ## 🌟 Features
 
@@ -11,8 +11,10 @@ A full-stack application for detecting diseases in cardamom leaves using deep le
 - **Grad-CAM Visualization**: Visual explanation showing which leaf regions influenced predictions
 - **Background Removal**: U2-Net integration (placeholder ready)
 - **Modern Web Interface**: React TypeScript frontend with responsive design
+- **📱 Mobile App**: React Native app with camera integration and Nepali language support
 - **Real-time Predictions**: Fast inference with confidence scores
 - **RESTful API**: FastAPI backend with automatic documentation
+- **Bilingual Support**: English and Nepali (नेपाली) interface
 
 ## 🏗️ Architecture
 
@@ -29,6 +31,14 @@ A full-stack application for detecting diseases in cardamom leaves using deep le
 - **HTTP Client**: Axios for API communication
 - **UI**: Modern gradient design, responsive layout
 - **Features**: Image upload, preview, results display, error handling
+
+### Mobile App (React Native + Expo)
+- **Framework**: React Native with Expo
+- **Language**: TypeScript
+- **Features**: Camera capture, gallery picker, disease detection
+- **UI**: Bilingual (English/Nepali), native mobile experience
+- **Navigation**: React Navigation
+- **Comprehensive Disease Info**: Full information in Nepali for farmers
 
 ## 📁 Project Structure
 
@@ -61,6 +71,19 @@ cardamom-leaf-disease-detection/
 │   ├── tsconfig.json
 │   └── vite.config.ts
 │
+├── cardamom-mobile-app/         # 📱 React Native Mobile App
+│   ├── App.tsx                  # Main app with navigation
+│   ├── src/
+│   │   ├── screens/             # HomeScreen, ResultScreen, DiseaseInfoScreen
+│   │   ├── components/          # Reusable UI components
+│   │   ├── services/            # API client
+│   │   ├── data/                # Disease info in Nepali
+│   │   ├── types/               # TypeScript types
+│   │   └── utils/               # Helper functions
+│   ├── app.json                 # Expo configuration
+│   ├── package.json
+│   └── README.md
+│
 ├── .gitignore
 └── README.md
 ```
@@ -76,6 +99,11 @@ cardamom-leaf-disease-detection/
 - **Frontend**:
   - Node.js 18 or higher
   - npm or yarn
+
+- **Mobile App**:
+  - Node.js 18 or higher
+  - Expo CLI (`npm install -g expo-cli`)
+  - Expo Go app (for testing on real devices)
 
 ### Installation
 
@@ -108,6 +136,16 @@ cd frontend
 npm install
 ```
 
+#### 3. Mobile App Setup
+
+```bash
+# Navigate to mobile app directory
+cd cardamom-mobile-app
+
+# Install dependencies
+npm install
+```
+
 ### Running the Application
 
 #### Start Backend Server
@@ -130,6 +168,24 @@ npm run dev
 ```
 
 The frontend will be available at: http://localhost:5173
+
+#### Start Mobile App
+
+```bash
+cd cardamom-mobile-app
+npm start
+```
+
+Then:
+- Scan the QR code with Expo Go app on your device
+- Or press `i` for iOS simulator, `a` for Android emulator, `w` for web
+
+**Note**: To connect the mobile app to your backend:
+1. Find your computer's local IP address
+2. Update `src/services/api.ts` in the mobile app:
+   ```typescript
+   const API_BASE_URL = 'http://YOUR_LOCAL_IP:8000';
+   ```
 
 ## 📡 API Endpoints
 
