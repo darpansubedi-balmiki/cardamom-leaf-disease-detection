@@ -220,6 +220,28 @@ const API_BASE_URL = 'http://192.168.1.XXX:8000'; // Replace with your IP
 2. Restart the Expo development server
 3. Clear Expo cache: `expo start -c`
 
+### Bundling Error: "Unable to resolve @babel/runtime"
+
+**Error Message**:
+```
+Unable to resolve "./unsupportedIterableToArray.js" from "node_modules/@babel/runtime/helpers/slicedToArray.js"
+```
+
+**Solutions**:
+1. The `@babel/runtime` package is now included in dependencies
+2. If you still see this error, try:
+   ```bash
+   rm -rf node_modules package-lock.json
+   npm install
+   npm start
+   ```
+3. Clear Metro bundler cache:
+   ```bash
+   npm start -- --clear
+   # or
+   expo start -c
+   ```
+
 ### Low Prediction Confidence
 
 **Solutions**:
