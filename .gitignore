@@ -106,3 +106,8 @@ Desktop.ini
 *.temp
 .tmp/
 tmp/
+
+#model images
+backend/colletotrichum_blight
+backend/phyllosticta_leaf_spot
+backend/healthy
