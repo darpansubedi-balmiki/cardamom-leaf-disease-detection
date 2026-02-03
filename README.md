@@ -5,9 +5,21 @@ A complete full-stack and mobile application system for detecting diseases in ca
 - **Phyllosticta Leaf Spot** (फाइलोस्टिक्टा पात दाग)
 - **Healthy** (स्वस्थ)
 
+## ⚠️ IMPORTANT: Model Training Required
+
+**The system currently uses an UNTRAINED placeholder model with random weights.** This means:
+- ❌ Predictions are essentially random (low accuracy)
+- ❌ Confidence scores are typically 20-40%
+- ❌ Classifications are likely incorrect
+- ❌ **NOT suitable for production use**
+
+**To get accurate predictions, you MUST train the model with real cardamom disease images.**
+
+👉 **See [MODEL_TRAINING.md](MODEL_TRAINING.md) for complete training instructions**
+
 ## 🌟 Features
 
-- **Deep Learning Classification**: PyTorch-based CNN model for disease detection
+- **Deep Learning Classification**: PyTorch-based EfficientNetV2 model for disease detection
 - **Grad-CAM Visualization**: Visual explanation showing which leaf regions influenced predictions
 - **Background Removal**: U2-Net integration (placeholder ready)
 - **Modern Web Interface**: React TypeScript frontend with responsive design
@@ -20,7 +32,7 @@ A complete full-stack and mobile application system for detecting diseases in ca
 
 ### Backend (FastAPI + PyTorch)
 - **Framework**: FastAPI with CORS support
-- **Model**: Placeholder CNN classifier (4 conv blocks, 3 output classes)
+- **Model**: EfficientNetV2-S classifier (3 output classes) - **requires training**
 - **Preprocessing**: ImageNet normalization, 224x224 resizing
 - **Visualization**: Grad-CAM heatmap generation
 - **Background Removal**: U2-Net placeholder (ready for integration)

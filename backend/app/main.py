@@ -41,12 +41,13 @@ CLASS_NAMES = ["Colletotrichum Blight", "Phyllosticta Leaf Spot", "Healthy"]
 classifier_model = None
 u2net_model = None
 device = None
+model_is_trained = False  # Track if using trained or placeholder model
 
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize models on startup."""
-    global classifier_model, u2net_model, device
+    global classifier_model, u2net_model, device, model_is_trained
     
     print("Starting up application...")
     
@@ -56,7 +57,7 @@ async def startup_event():
     
     # Load classifier model
     print("Loading classifier model...")
-    classifier_model = load_model(device=device)
+    classifier_model, model_is_trained = load_model(device=device)
     print("Classifier model loaded successfully")
     
     # Load U2-Net model (placeholder for now)
@@ -72,7 +73,8 @@ async def health_check():
     Returns:
         Status message indicating the API is running
     """
-    return HealthResponse(status="ok")
+    model_status = "trained" if model_is_trained else "untrained (placeholder)"
+    return HealthResponse(status="ok", model_status=model_status)
 
 
 @app.post("/predict", response_model=PredictionResponse)
@@ -142,10 +144,21 @@ async def predict(file: UploadFile = File(...)):
         # Overlay heatmap on original image and encode as base64
         heatmap_base64 = overlay_and_encode(image, heatmap, alpha=0.4)
         
+        # Add warning if using untrained model
+        warning = None
+        if not model_is_trained:
+            warning = (
+                "⚠️ UNTRAINED MODEL: This prediction uses a placeholder model with random weights. "
+                "Predictions are not accurate. Please train the model with real data for production use. "
+                "See MODEL_TRAINING.md for instructions."
+            )
+        
         return PredictionResponse(
             class_name=class_name,
             confidence=confidence,
-            heatmap=heatmap_base64
+            heatmap=heatmap_base64,
+            model_trained=model_is_trained,
+            warning=warning
         )
         
     except HTTPException:
