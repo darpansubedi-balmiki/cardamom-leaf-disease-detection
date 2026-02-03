@@ -5,7 +5,7 @@ import axios from 'axios';
 import { PredictionResponse } from '../types';
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://192.168.1.64:8000';
 const API_TIMEOUT = 30000; // 30 seconds
 
 // Create axios instance
@@ -39,10 +39,10 @@ export const predictDisease = async (imageUri: string): Promise<PredictionRespon
   try {
     // Create FormData
     const formData = new FormData();
-    
+
     // Extract filename from URI
     const filename = imageUri.split('/').pop() || 'image.jpg';
-    
+
     // For React Native, we need to append the file with proper format
     formData.append('file', {
       uri: imageUri,
@@ -59,7 +59,7 @@ export const predictDisease = async (imageUri: string): Promise<PredictionRespon
     return response.data;
   } catch (error: any) {
     console.error('Prediction failed:', error);
-    
+
     // Handle specific error cases
     if (error.response) {
       // Server responded with error
