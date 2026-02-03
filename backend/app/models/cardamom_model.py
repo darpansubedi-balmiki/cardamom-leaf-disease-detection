@@ -32,7 +32,7 @@ class CardamomClassifier(nn.Module):
         return self.backbone(x)
 
 
-def load_model(device: torch.device, model_path: str = "models/cardamom_model.pt") -> nn.Module:
+def load_model(device: torch.device, model_path: str = "models/cardamom_model.pt") -> tuple[nn.Module, bool]:
     """
     Load the cardamom classification model.
     
@@ -41,9 +41,10 @@ def load_model(device: torch.device, model_path: str = "models/cardamom_model.pt
         model_path: Path to model weights
         
     Returns:
-        Loaded model
+        Tuple of (loaded model, is_trained flag)
     """
     model = CardamomClassifier(num_classes=3)
+    is_trained = False
     
     # Try to load weights if available
     model_file = Path(model_path)
@@ -52,12 +53,16 @@ def load_model(device: torch.device, model_path: str = "models/cardamom_model.pt
             state_dict = torch.load(model_file, map_location=device)
             model.load_state_dict(state_dict)
             print(f"✓ Loaded trained model weights from {model_path}")
+            is_trained = True
         except Exception as e:
             print(f"Warning: Could not load model weights: {e}")
-            print("Using randomly initialized weights")
+            print("Using randomly initialized weights (UNTRAINED MODEL)")
     else:
-        print(f"Model file not found at {model_path}")
-        print("Using randomly initialized weights (placeholder model)")
+        print(f"⚠️  Model file not found at {model_path}")
+        print("⚠️  Using randomly initialized weights (UNTRAINED PLACEHOLDER MODEL)")
+        print("⚠️  Predictions will be inaccurate - please train the model first!")
+        print(f"⚠️  See MODEL_TRAINING.md for training instructions")
     
     model = model.to(device)
-    return model
+    model.eval()  # Set to evaluation mode
+    return model, is_trained
