@@ -6,7 +6,21 @@ Your dataset is ready with **1,724 images** across 3 disease classes.
 
 ---
 
-## ⚡ 3-Step Quick Start
+## ⚡ 4-Step Quick Start
+
+### Step 0: Check Your Setup (RECOMMENDED!)
+```bash
+cd backend
+python check_training_setup.py
+```
+
+This will verify:
+- ✅ All required packages installed
+- ✅ PyTorch working correctly
+- ✅ Dataset structure is correct
+- ✅ Output directories ready
+
+**Always run this first to avoid surprises!**
 
 ### Step 1: Open Terminal in Backend Folder
 ```bash
@@ -126,23 +140,46 @@ Model is trained: True
 
 ## 🆘 Quick Troubleshooting
 
-### "No module named 'torch'"
+### If You Get ANY Errors
+
+**First, run the diagnostic tool:**
 ```bash
-pip install torch torchvision
+python check_training_setup.py
 ```
 
-### Training too slow on CPU
+This will tell you exactly what's wrong!
+
+### Common Issues:
+
+**"No module named 'tqdm'" or "No module named 'torch'"**
 ```bash
-# Use Google Colab with free GPU
-# Or reduce batch size in train.py: BATCH_SIZE = 16
+git pull  # Get latest requirements.txt
+pip install -r requirements.txt
 ```
 
-### "CUDA out of memory"
+**"Dataset directory not found"**
 ```bash
-# Reduce batch size in train.py
+# Make sure you're in backend/ folder
+cd backend
+python train.py
+```
+
+**"CUDA out of memory" or "MPS error"**
+```bash
+# Edit train.py, reduce batch size:
 # Change: BATCH_SIZE = 32
-# To: BATCH_SIZE = 16
+# To:     BATCH_SIZE = 16
 ```
+
+**Training too slow on CPU?**
+- Use Google Colab with free GPU
+- Or reduce batch size: `BATCH_SIZE = 16`
+
+**For complete troubleshooting, see:**
+- 📚 **TRAIN_PY_ERRORS.md** - Comprehensive error guide
+- 🔧 **check_training_setup.py** - Diagnostic tool
+
+---
 
 ---
 
