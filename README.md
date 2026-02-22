@@ -5,6 +5,14 @@ A complete full-stack and mobile application system for detecting diseases in ca
 - **Phyllosticta Leaf Spot** (फाइलोस्टिक्टा पात दाग)
 - **Healthy** (स्वस्थ)
 
+## 🔄 Just Pulled Changes?
+
+**→ Read [AFTER_PULL.md](AFTER_PULL.md)** - Complete guide for what to do after pulling updates!
+
+Quick summary: Install dependencies → Verify installation → Choose your path (train model or start using system)
+
+---
+
 ## 🎉 READY TO TRAIN YOUR MODEL?
 
 **If you have collected cardamom disease images:**
