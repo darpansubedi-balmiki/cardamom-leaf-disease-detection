@@ -179,6 +179,39 @@ sudo yum install libjpeg-turbo-devel zlib-devel
 **Solution 3**: Use updated requirements.txt
 Make sure you have the latest requirements.txt with Pillow>=10.4.0
 
+### Problem: pydantic-core build failure on Python 3.13
+
+**Symptoms:**
+```
+Building wheel for pydantic-core (pyproject.toml) ... error
+TypeError: ForwardRef._evaluate() missing 1 required keyword-only argument: 'recursive_guard'
+```
+
+**Cause**: pydantic 2.5.3 and older don't support Python 3.13's updated ForwardRef API
+
+**Solution 1**: Use updated requirements.txt (Best)
+```bash
+git pull  # Get requirements.txt with pydantic>=2.10.6
+pip install -r requirements.txt
+```
+
+**Solution 2**: Upgrade pydantic manually
+```bash
+pip install --upgrade 'pydantic>=2.10.6'
+```
+
+**Solution 3**: Use Python 3.11 or 3.12 (Most stable)
+```bash
+# Using pyenv
+pyenv install 3.12.0
+pyenv local 3.12.0
+
+# Or using conda
+conda create -n cardamom python=3.12
+```
+
+**Why this works**: pydantic 2.10.6+ has native Python 3.13 support with pre-built wheels, no Rust compilation needed.
+
 ### Problem: NumPy compatibility errors
 
 **Symptoms:**

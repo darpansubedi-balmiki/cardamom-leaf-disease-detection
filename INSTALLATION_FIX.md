@@ -3,8 +3,9 @@
 ## Your Issue
 
 ```
-Pillow==10.2.0 build error on Python 3.13
+Pillow==10.2.0 or pydantic-core build error on Python 3.13
 Getting requirements to build wheel did not run successfully
+TypeError: ForwardRef._evaluate() missing required keyword-only argument
 ```
 
 ## ✅ Solution (3 Steps)
@@ -67,6 +68,7 @@ The requirements.txt was updated to use versions with Python 3.13 support:
 | Package | Before | After |
 |---------|--------|-------|
 | Pillow | 10.2.0 | >=10.4.0 ✅ |
+| pydantic | 2.5.3 | >=2.10.6 ✅ |
 | torch | >=2.0.0 | >=2.1.0 ✅ |
 | numpy | 1.26.3 | >=1.26.4 ✅ |
 
@@ -101,8 +103,8 @@ python -c "import torch, torchvision, PIL; print('✅ All packages imported succ
 
 ## Quick Summary
 
-✅ **Problem**: Pillow 10.2.0 doesn't have Python 3.13 wheels  
-✅ **Solution**: Updated to Pillow >=10.4.0 (has Python 3.13 wheels)  
+✅ **Problem**: Pillow 10.2.0 and pydantic 2.5.3 don't have Python 3.13 wheels  
+✅ **Solution**: Updated to Pillow >=10.4.0 and pydantic >=2.10.6 (Python 3.13 support)  
 ✅ **Action**: `git pull` then `pip install -r requirements.txt`  
 ✅ **Result**: Installation works on Python 3.13 macOS ARM64  
 
