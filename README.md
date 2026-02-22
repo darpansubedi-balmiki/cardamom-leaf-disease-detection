@@ -19,6 +19,7 @@ A complete full-stack and mobile application system for detecting diseases in ca
 **Quick check:**
 - ✅ All checks pass → You're ready to train!
 - ❌ Checks fail → Read [INSTALL_DEPENDENCIES.md](INSTALL_DEPENDENCIES.md)
+- ❓ Questions? → Read [FAQ.md](FAQ.md) for common issues
 
 **Don't have data yet?** → Read [NEXT_STEPS.md](NEXT_STEPS.md) for data collection guidance
 

@@ -26,6 +26,24 @@ Follow these **3 simple steps** to get everything working:
 
 ---
 
+## ⚠️ IMPORTANT: Git Pull vs Pip Install
+
+```
+┌─────────────────────────────────────────┐
+│  git pull    → Gets code & docs          │
+│  pip install → Installs packages         │
+│                                          │
+│  BOTH are needed!                       │
+└─────────────────────────────────────────┘
+```
+
+**Running `git pull` does NOT install Python packages!**  
+After pulling changes, you must run: `pip install -r requirements.txt`
+
+See **FAQ.md** for more details.
+
+---
+
 ## ⚡ STEP 1: Install Dependencies
 
 **What:** Install all required Python packages  
