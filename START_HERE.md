@@ -22,7 +22,39 @@
 
 This is your **first-time setup guide** for the Cardamom Leaf Disease Detection System.
 
-Follow these **3 simple steps** to get everything working:
+Follow these **4 simple steps** to get everything working:
+
+---
+
+## 💡 STEP 0: Virtual Environment (RECOMMENDED)
+
+**What:** Create an isolated Python environment  
+**Time:** 1 minute  
+**Why:** Prevents conflicts, keeps project clean
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate it - IMPORTANT!
+source venv/bin/activate  # macOS/Linux
+# OR
+venv\Scripts\activate     # Windows
+```
+
+**How to tell it's active:** Your prompt should show `(venv)`:
+```bash
+(venv) user@computer:~/backend$
+```
+
+**🎉 User Discovery:** Someone forgot this step and had issues. After activating venv, everything worked perfectly!
+
+> "i forgot to do this: source venv/bin/activate  
+> Everything is working fine now"
+
+**Learn more:** See **VIRTUAL_ENVIRONMENT.md** for complete guide.
 
 ---
 
@@ -51,6 +83,7 @@ See **FAQ.md** for more details.
 **Size:** ~160MB download
 
 ```bash
+# Make sure venv is active first! (See STEP 0)
 cd backend
 pip install -r requirements.txt
 ```
