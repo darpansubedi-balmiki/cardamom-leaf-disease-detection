@@ -2,15 +2,49 @@
 Training script for Cardamom Leaf Disease Classification
 Uses EfficientNetV2 with transfer learning
 """
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms, models
-import numpy as np
+import sys
 from pathlib import Path
+
+# Check imports with helpful error messages
+try:
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    from torch.utils.data import DataLoader
+except ImportError as e:
+    print(f"\n❌ Error importing PyTorch: {e}")
+    print("💡 Fix: pip install torch torchvision")
+    print("📚 Or run: pip install -r requirements.txt")
+    sys.exit(1)
+
+try:
+    from torchvision import datasets, transforms, models
+except ImportError as e:
+    print(f"\n❌ Error importing torchvision: {e}")
+    print("💡 Fix: pip install torchvision")
+    print("📚 Or run: pip install -r requirements.txt")
+    sys.exit(1)
+
+try:
+    import numpy as np
+except ImportError as e:
+    print(f"\n❌ Error importing numpy: {e}")
+    print("💡 Fix: pip install numpy")
+    print("📚 Or run: pip install -r requirements.txt")
+    sys.exit(1)
+
+try:
+    from tqdm import tqdm
+except ImportError as e:
+    print(f"\n❌ Error importing tqdm: {e}")
+    print("💡 Fix: pip install tqdm")
+    print("📚 Or run: pip install -r requirements.txt")
+    print("\n⚠️  You may need to pull latest changes:")
+    print("   git pull")
+    print("   pip install -r requirements.txt")
+    sys.exit(1)
+
 import time
-from tqdm import tqdm
 
 # Configuration
 class Config:
@@ -148,22 +182,87 @@ def validate(model, dataloader, criterion, device):
 def train_model():
     """Main training function"""
     
+    # Pre-flight checks
+    print("\n" + "=" * 60)
+    print("PRE-TRAINING CHECKS")
+    print("=" * 60)
+    
+    # Check dataset directory exists
+    dataset_path = Path(Config.DATASET_PATH)
+    if not dataset_path.exists():
+        print(f"\n❌ ERROR: Dataset directory not found!")
+        print(f"   Expected: {dataset_path.absolute()}")
+        print("\n💡 Solutions:")
+        print("   1. If you have data but haven't organized it:")
+        print("      Run: python split_dataset.py")
+        print("   2. Make sure you're in the 'backend' directory")
+        print("   3. Check that dataset/ folder exists with train/val/test subdirectories")
+        print("\n📚 See: TRAINING_YOUR_MODEL.md for details")
+        sys.exit(1)
+    
+    # Check dataset structure
+    required_splits = ["train", "val", "test"]
+    for split in required_splits:
+        split_path = dataset_path / split
+        if not split_path.exists():
+            print(f"\n❌ ERROR: Missing dataset split: {split}/")
+            print(f"   Expected: {split_path.absolute()}")
+            print("\n💡 Run: python split_dataset.py")
+            sys.exit(1)
+    
+    print("✅ Dataset directory structure OK")
+    
+    # Check models output directory
+    models_dir = Path("models")
+    models_dir.mkdir(exist_ok=True)
+    print(f"✅ Output directory OK: {models_dir.absolute()}")
+    
+    # Display device info
+    print(f"✅ Device: {Config.DEVICE}")
+    
+    # Test device
+    try:
+        test_tensor = torch.randn(1, 3, 224, 224).to(Config.DEVICE)
+        print(f"✅ Device test passed")
+        del test_tensor  # Free memory
+    except Exception as e:
+        print(f"\n⚠️  Warning: Device test failed: {e}")
+        print("   Falling back to CPU")
+        Config.DEVICE = torch.device("cpu")
+    
+    print("=" * 60 + "\n")
+    
     print(f"Using device: {Config.DEVICE}")
-    print(f"Dataset path: {Config.DATASET_PATH}")
+    print(f"Dataset path: {dataset_path.absolute()}")
     
     # Create data transforms
     train_transforms, val_transforms = get_data_transforms()
     
     # Load datasets
-    train_dataset = datasets.ImageFolder(
-        root=f"{Config.DATASET_PATH}/train",
-        transform=train_transforms
-    )
-    
-    val_dataset = datasets.ImageFolder(
-        root=f"{Config.DATASET_PATH}/val",
-        transform=val_transforms
-    )
+    print("\nLoading datasets...")
+    try:
+        train_dataset = datasets.ImageFolder(
+            root=f"{Config.DATASET_PATH}/train",
+            transform=train_transforms
+        )
+        
+        val_dataset = datasets.ImageFolder(
+            root=f"{Config.DATASET_PATH}/val",
+            transform=val_transforms
+        )
+    except Exception as e:
+        print(f"\n❌ ERROR loading datasets: {e}")
+        print("\n💡 Make sure your dataset has this structure:")
+        print("   dataset/")
+        print("   ├── train/")
+        print("   │   ├── colletotrichum_blight/")
+        print("   │   ├── phyllosticta_leaf_spot/")
+        print("   │   └── healthy/")
+        print("   └── val/")
+        print("       ├── colletotrichum_blight/")
+        print("       ├── phyllosticta_leaf_spot/")
+        print("       └── healthy/")
+        sys.exit(1)
     
     print(f"\nDataset loaded:")
     print(f"Training samples: {len(train_dataset)}")
