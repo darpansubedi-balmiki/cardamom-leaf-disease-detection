@@ -1,11 +1,19 @@
 # 🔧 Installation Fix - Python 3.13 on macOS ARM64
 
-## Your Issue
+## Common Issues
 
+### Issue 1: Pillow/pydantic build errors on Python 3.13
 ```
-Pillow==10.2.0 or pydantic-core build error on Python 3.13
 Getting requirements to build wheel did not run successfully
 TypeError: ForwardRef._evaluate() missing required keyword-only argument
+```
+
+### Issue 2: Training script import errors
+```
+Traceback (most recent call last):
+  File "train.py", line 13, in <module>
+    from tqdm import tqdm
+ModuleNotFoundError: No module named 'tqdm'
 ```
 
 ## ✅ Solution (3 Steps)
@@ -31,7 +39,18 @@ cd backend
 pip install -r requirements.txt
 ```
 
-**That's it!** ✅ Installation should now work.
+**That's it!** ✅ Installation should now work with all dependencies including training tools (tqdm, matplotlib).
+
+---
+
+## What Was Fixed
+
+| Package | Old Version | New Version | Why |
+|---------|-------------|-------------|-----|
+| Pillow | 10.2.0 | >=10.4.0 | Python 3.13 wheels |
+| pydantic | 2.5.3 | >=2.10.6 | Python 3.13 support |
+| tqdm | ❌ Missing | >=4.66.0 | Training progress bars |
+| matplotlib | ❌ Missing | >=3.8.0 | Training plots |
 
 ---
 

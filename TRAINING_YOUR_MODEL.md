@@ -37,10 +37,7 @@ cd backend
 pip install -r requirements.txt
 ```
 
-Additional packages for training:
-```bash
-pip install matplotlib tqdm
-```
+> ✅ All training dependencies now included in requirements.txt (tqdm, matplotlib, etc.)
 
 ### Step 2: Verify Your Dataset
 

@@ -16,8 +16,9 @@ cd backend
 ### Step 2: Install Dependencies (if not done)
 ```bash
 pip install -r requirements.txt
-pip install matplotlib tqdm scikit-learn
 ```
+
+> ✅ All dependencies now included: torch, torchvision, tqdm, matplotlib, etc.
 
 ### Step 3: Start Training!
 ```bash
