@@ -123,8 +123,9 @@ cardamom-leaf-disease-detection/
 ### Prerequisites
 
 - **Backend**:
-  - Python 3.8 or higher
-  - pip
+  - **Python 3.9 - 3.13** (Recommended: Python 3.11 or 3.12)
+  - pip (latest version)
+  - **Having issues?** See [PYTHON_VERSION_GUIDE.md](PYTHON_VERSION_GUIDE.md)
 
 - **Frontend**:
   - Node.js 18 or higher

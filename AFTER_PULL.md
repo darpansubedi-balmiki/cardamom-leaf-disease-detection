@@ -19,6 +19,18 @@ You've just pulled the latest changes from the repository. Here's your step-by-s
 
 ## Step 1: Install Dependencies 📦
 
+### ⚠️ Python Version Check
+
+**Recommended**: Python 3.11 or 3.12  
+**Supported**: Python 3.9 - 3.13
+
+Check your Python version:
+```bash
+python --version
+```
+
+**Having installation issues?** See [PYTHON_VERSION_GUIDE.md](PYTHON_VERSION_GUIDE.md) for detailed help.
+
 ### Backend (Required for all users)
 
 ```bash
@@ -27,6 +39,14 @@ pip install -r requirements.txt
 ```
 
 **Expected output**: All packages install successfully, no errors.
+
+**If you get Pillow build errors on Python 3.13:**
+The requirements.txt has been updated for Python 3.13 compatibility. Make sure you have the latest version:
+```bash
+git pull
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
 ### Frontend (Optional - for web interface)
 
@@ -184,6 +204,37 @@ You'll see the interactive API documentation. Try the `/predict` endpoint with a
 ---
 
 ## 🔧 Troubleshooting
+
+### Pillow/Python installation errors (Python 3.13)
+
+**Error**: `Getting requirements to build wheel did not run successfully`
+
+**Solution 1**: Use updated requirements.txt (already done)
+```bash
+cd backend
+git pull  # Make sure you have latest requirements.txt
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+**Solution 2**: Install system dependencies (macOS)
+```bash
+brew install libjpeg zlib
+pip install -r requirements.txt
+```
+
+**Solution 3**: Use Python 3.11 or 3.12 (recommended)
+```bash
+# Using pyenv
+pyenv install 3.12.0
+pyenv local 3.12.0
+
+# Or using conda
+conda create -n cardamom python=3.12
+conda activate cardamom
+```
+
+**Full guide**: See [PYTHON_VERSION_GUIDE.md](PYTHON_VERSION_GUIDE.md)
 
 ### "Module not found" errors
 
