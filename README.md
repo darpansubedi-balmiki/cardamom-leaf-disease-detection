@@ -5,6 +5,25 @@ A complete full-stack and mobile application system for detecting diseases in ca
 - **Phyllosticta Leaf Spot** (फाइलोस्टिक्टा पात दाग)
 - **Healthy** (स्वस्थ)
 
+---
+
+## 🚀 NEW USERS - START HERE!
+
+**First time setting up? Follow these steps IN ORDER:**
+
+1. **📖 Read**: [START_HERE.md](START_HERE.md) ← **Start with this!** (3-minute read)
+2. **📦 Install**: `cd backend && pip install -r requirements.txt` (3-5 minutes)
+3. **✅ Verify**: `python backend/check_training_setup.py` (30 seconds)
+4. **🎯 Train**: `python backend/train.py` (30-60 minutes)
+
+**Quick check:**
+- ✅ All checks pass → You're ready to train!
+- ❌ Checks fail → Read [INSTALL_DEPENDENCIES.md](INSTALL_DEPENDENCIES.md)
+
+**Don't have data yet?** → Read [NEXT_STEPS.md](NEXT_STEPS.md) for data collection guidance
+
+---
+
 ## 🔄 Just Pulled Changes?
 
 **→ Read [AFTER_PULL.md](AFTER_PULL.md)** - Complete guide for what to do after pulling updates!
