@@ -1,5 +1,18 @@
 # 🚀 START TRAINING NOW - Quick Guide
 
+## 🔴 Are You Getting Wrong Predictions with ~33% Confidence?
+
+**If your model is predicting incorrectly with confidence around 33%**, it's because the model is untrained!
+
+**Example:** Upload Phyllosticta image → Get "Colletotrichum 33.93%"
+
+**This is random guessing!** (3 classes = 33.33% random chance)
+
+**📚 Full explanation:** [WHY_LOW_ACCURACY.md](WHY_LOW_ACCURACY.md)  
+**🚨 Urgent guide:** [TRAIN_NOW.md](TRAIN_NOW.md)
+
+---
+
 ## You Have Data! Let's Train! 🎉
 
 Your dataset is ready with **1,724 images** across 3 disease classes.

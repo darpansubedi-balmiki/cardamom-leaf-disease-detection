@@ -1,15 +1,25 @@
 # Understanding Your Model Accuracy Issue
 
-## Your Report
+## User Reports
+
+### Report 1 (Earlier):
 > "Alright my model seems to be not accurate i clicked photo of 'phyllosticta_leaf_spot' but i get 'colletotrichum_blight' and it gave me confidence percentage of 35.62%"
+
+### Report 2 (Current):
+> "the current model shows 33.93% Colletotrichum Blight when i upload image of phyllosticta leaf spot"
 
 ## Why This Is Happening
 
 ### The Issue
-You're experiencing low accuracy (35.62%) and incorrect predictions because **the model is untrained**. It's using randomly initialized weights, which means it's making essentially random guesses.
+You're experiencing low accuracy (35.62% and 33.93%) and incorrect predictions because **the model is untrained**. It's using randomly initialized weights, which means it's making essentially random guesses.
+
+**Key observation:** 33.93% ≈ 33.33% (1/3 for 3 classes) - this proves random guessing!
 
 ### This Is Expected Behavior
-The system was designed as a **framework** that requires training with real data. The low confidence and incorrect classification are symptoms of using an untrained model, not a bug.
+The system was designed as a **framework** that requires training with real data. The low confidence (~33%) and incorrect classification are symptoms of using an untrained model, not a bug.
+
+**📚 For detailed explanation, see:** [WHY_LOW_ACCURACY.md](WHY_LOW_ACCURACY.md)
+**🚀 To fix this NOW, see:** [TRAIN_NOW.md](TRAIN_NOW.md)
 
 ## What Changed
 
