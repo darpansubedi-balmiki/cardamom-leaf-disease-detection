@@ -49,21 +49,29 @@ async def startup_event():
     """Initialize models on startup."""
     global classifier_model, u2net_model, device, model_is_trained
     
-    print("Starting up application...")
+    print("=" * 60)
+    print("Starting Cardamom Disease Detection API...")
+    print("=" * 60)
     
     # Determine device
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f"Using device: {device}")
+    print(f"✓ Using device: {device}")
     
     # Load classifier model
-    print("Loading classifier model...")
+    print("✓ Loading classifier model...")
     classifier_model, model_is_trained = load_model(device=device)
-    print("Classifier model loaded successfully")
+    if model_is_trained:
+        print("  → Classifier model loaded successfully (trained)")
+    else:
+        print("  → Classifier model loaded (untrained/placeholder)")
+        print("  ⚠️  WARNING: Model needs training for accurate predictions!")
     
     # Load U2-Net model (placeholder for now)
-    print("Loading U2-Net model...")
     u2net_model = load_u2net(device=device)
-    print("U2-Net model loaded (placeholder)")
+    
+    print("=" * 60)
+    print("✓ API is ready to accept requests")
+    print("=" * 60)
 
 
 @app.get("/health", response_model=HealthResponse)
