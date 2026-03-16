@@ -238,6 +238,45 @@ Then:
    const API_BASE_URL = 'http://YOUR_LOCAL_IP:8000';
    ```
 
+## 💬 Common Startup Messages
+
+### When You Start the Backend
+
+You'll see informational messages during startup. **These are normal!**
+
+#### U2-Net Placeholder Message
+```
+ℹ️  U2-Net background removal is not yet implemented (optional feature)
+   Images will be processed without background removal
+```
+
+**This is NOT an error!** 
+- U2-Net is an **optional feature** for background removal
+- The system works perfectly without it (85-92% accuracy with trained model)
+- Images are processed without background removal
+- **No action needed** - continue using the system normally
+
+**Want to understand this better?** → Read [U2NET_PLACEHOLDER.md](U2NET_PLACEHOLDER.md)
+
+#### Untrained Model Warning
+```
+⚠️  WARNING: Model needs training for accurate predictions!
+```
+
+**This means:**
+- Model is using random weights (not trained yet)
+- Predictions will be ~33% confidence (random guessing)
+- **Action needed**: Train your model with `python train.py`
+
+**After training**, this warning disappears and you get:
+```
+✓ Classifier model loaded successfully (trained)
+```
+
+**Need help?** → Read [WHY_LOW_ACCURACY.md](WHY_LOW_ACCURACY.md) and [TRAIN_NOW.md](TRAIN_NOW.md)
+
+---
+
 ## 📡 API Endpoints
 
 ### GET /health
