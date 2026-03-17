@@ -87,7 +87,7 @@ function App() {
     <div className="app">
       <div className="container">
         <header className="header">
-          <h1>🌿 Cardamom Leaf Disease Detection</h1>
+          <h1>Cardamom Leaf Disease Detection</h1>
           <p>Upload a cardamom leaf image to detect diseases</p>
         </header>
 
