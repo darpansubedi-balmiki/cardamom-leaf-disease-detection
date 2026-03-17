@@ -6,7 +6,76 @@ interface PredictionResponse {
   class_name: string;
   confidence: number;
   heatmap: string;
+  model_trained?: boolean;
+  warning?: string | null;
 }
+
+type Advice = {
+  nepaliName: string;
+  prevention: string[];
+  cure: string[];
+};
+
+const ADVICE_MAP: Record<string, Advice> = {
+  'Colletotrichum Blight': {
+    nepaliName: 'पात डढ्ने रोग',
+    prevention: [
+      'बोटबीचको दूरी मिलाएर हावापानी चल्ने बनाउनुहोस् (घना छायाँ/आर्द्रता कम गर्ने)।',
+      'बिरामी पात/डाँठ तुरुन्त हटाएर नष्ट गर्नुहोस् (खेतमै थुपारेर नराख्नुहोस्)।',
+      'बगैँचामा पानी जम्न नदिनुहोस्; ड्रेनेज राम्रो बनाउनुहोस्।',
+      'बेलाबेलामा झार सफा गरी खेत सफा राख्नुहोस्।',
+      'नर्सरी/रोपाइँ सामग्री स्वस्थ र रोगमुक्त प्रयोग गर्नुहोस्।',
+    ],
+    cure: [
+      'संक्रमित पात काटेर हटाउनुहोस् र खेत बाहिर नष्ट गर्नुहोस्।',
+      'रोग बढिरहेको बेला माथिबाट पानी छर्किने सिंचाइ (overhead irrigation) कम गर्नुहोस्।',
+      'स्थानीय कृषि प्राविधिकको सल्लाह अनुसार उपयुक्त फफूँदनाशक (fungicide) छर्कनुहोस् (डोज/अन्तराल पालन गर्नुहोस्)।',
+      'फेरि–फेरि एउटै औषधि मात्र नदोहो¥याई समूह परिवर्तन (rotation) गर्नुहोस् ताकि प्रतिरोध (resistance) नबढोस्।',
+    ],
+  },
+
+  'Phyllosticta Leaf Spot': {
+    nepaliName: 'पातमा दाग लाग्ने रोग',
+    prevention: [
+      'बोटलाई घना हुन नदिन छाँटाइ/सफाइ गरी हावा चल्ने बनाउनुहोस्।',
+      'बिरामी पात संकलन गरेर नष्ट गर्नुहोस्।',
+      'पात लामो समय भिजिरहने अवस्था (लगातार आर्द्रता) कम गर्ने व्यवस्थापन गर्नुहोस्।',
+      'सन्तुलित मलखाद प्रयोग गर्नुहोस्; अत्यधिक नाइट्रोजनबाट नरम पात बढी संवेदनशील हुन सक्छ।',
+    ],
+    cure: [
+      'रोग लागेको भाग काटेर हटाउनुहोस्।',
+      'रोग फैलिएको अवस्थामा कृषि प्राविधिकको सल्लाह अनुसार उपयुक्त फफूँदनाशक छर्कनुहोस्।',
+      'छर्काइपछि पनि सुधार नआएमा रोग पहिचान/डोज पुनः पुष्टि गर्न नजिकको कृषि कार्यालय/प्रयोगशालासँग परामर्श गर्नुहोस्।',
+    ],
+  },
+
+  Healthy: {
+    nepaliName: 'स्वस्थ (रोग देखिएको छैन)',
+    prevention: [
+      'बगैँचा सफा राख्नुहोस्, झारपात नियन्त्रण गर्नुहोस्।',
+      'पानी जम्न नदिनुहोस्; राम्रो निकास (drainage) बनाउनुहोस्।',
+      'बोटलाई धेरै घना हुन नदिन हल्का छाँटाइ गरी हावा चल्ने बनाउनुहोस्।',
+      'सन्तुलित मलखाद/जैविक मल प्रयोग गर्नुहोस् र माटोको स्वास्थ्य सुधार गर्नुहोस्।',
+      'समय–समयमा पात निरीक्षण गर्नुहोस्—दाग/किरा देखिनासाथ छिटो व्यवस्थापन गर्नुहोस्।',
+    ],
+    cure: [
+      'हाल उपचार आवश्यक छैन।',
+      'यदि भविष्यमा दाग/डढाइ/पहेंलोपन बढेमा फोटोसहित पुन: परीक्षण गर्नुहोस् वा कृषि प्राविधिकसँग सल्लाह लिनुहोस्।',
+    ],
+  },
+
+  Uncertain: {
+    nepaliName: 'अनिश्चित',
+    prevention: [
+      'फोटो स्पष्ट (फोकस भएको) र पात नजिकबाट खिचेर पुन: प्रयास गर्नुहोस्।',
+      'धेरै पात/पृष्ठभूमि नआउने गरी एउटै पात केन्द्रमा राख्नुहोस्।',
+      'प्राकृतिक उज्यालोमा फोटो खिच्नुहोस् (धेरै अँध्यारो/धेरै glare भएमा नतिजा बिग्रिन सक्छ)।',
+    ],
+    cure: [
+      'यदि रोग शंका छ भने नजिकको कृषि प्राविधिक/कृषि कार्यालयमा देखाएर पुष्टि गर्नुहोस्।',
+    ],
+  },
+};
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -14,6 +83,8 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [result, setResult] = useState<PredictionResponse | null>(null);
+
+  const advice = result ? ADVICE_MAP[result.class_name] : undefined;
 
   /**
    * Handle file selection.
@@ -103,9 +174,7 @@ function App() {
             📁 Choose Image
           </label>
 
-          {selectedFile && (
-            <span className="file-name">{selectedFile.name}</span>
-          )}
+          {selectedFile && <span className="file-name">{selectedFile.name}</span>}
         </div>
 
         {previewUrl && (
@@ -138,21 +207,26 @@ function App() {
           )}
         </div>
 
-        {error && (
-          <div className="error-message">
-            ⚠️ {error}
-          </div>
-        )}
+        {error && <div className="error-message">⚠️ {error}</div>}
 
         {result && (
           <div className="results-section">
             <h2>Results</h2>
 
+            {result.warning && (
+              <div className="error-message" style={{ marginBottom: 12 }}>
+                {result.warning}
+              </div>
+            )}
+
             <div className="result-card">
               <div className="result-info">
                 <div className="result-item">
                   <span className="label">Disease Class:</span>
-                  <span className="value class-name">{result.class_name}</span>
+                  <span className="value class-name">
+                    {result.class_name}
+                    {advice ? ` — ${advice.nepaliName}` : ''}
+                  </span>
                 </div>
 
                 <div className="result-item">
@@ -168,6 +242,38 @@ function App() {
                     style={{ width: `${result.confidence * 100}%` }}
                   ></div>
                 </div>
+
+                {advice && (
+                  <div className="recommendation-section">
+                    <h3>सुझाव</h3>
+
+                    <div className="advice-block">
+                      <h4>रोकथाम (Prevention)</h4>
+                      <ul>
+                        {advice.prevention.map((tip, idx) => (
+                          <li key={`prev-${idx}`}>{tip}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="advice-block">
+                      <h4>उपचार/व्यवस्थापन (Cure / Management)</h4>
+                      <ul>
+                        {advice.cure.map((tip, idx) => (
+                          <li key={`cure-${idx}`}>{tip}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="advice-block">
+                      <h4>सूचना</h4>
+                      <p style={{ margin: 0 }}>
+                        यी सुझावहरू सामान्य जानकारीका लागि हुन्। स्थानीय कृषि प्राविधिक/कृषि
+                        कार्यालयको सल्लाह अनुसार मात्र औषधि/छर्काइ प्रयोग गर्नुहोस्।
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="heatmap-section">

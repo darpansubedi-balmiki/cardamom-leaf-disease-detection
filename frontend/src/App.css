@@ -319,3 +319,24 @@
     justify-content: center;
   }
 }
+
+.recommendation-section {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f7f8ff;
+  border: 1px solid #e6e8ff;
+}
+
+.advice-block {
+  margin-top: 12px;
+}
+
+.advice-block h4 {
+  margin: 10px 0;
+}
+
+.advice-block ul {
+  margin: 0;
+  padding-left: 20px;
+}
