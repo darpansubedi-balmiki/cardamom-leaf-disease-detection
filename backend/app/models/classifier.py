@@ -127,9 +127,17 @@ class DiseaseClassifier:
     # ------------------------------------------------------------------
 
     def _build_model(self) -> torch.nn.Module:
+        # Must match the architecture used in train.py
         model = models.efficientnet_v2_s(weights=None)
-        in_features = model.classifier[-1].in_features
-        model.classifier[-1] = torch.nn.Linear(in_features, len(CLASS_NAMES))
+
+        num_features = model.classifier[1].in_features
+        model.classifier = torch.nn.Sequential(
+            torch.nn.Dropout(p=0.3),
+            torch.nn.Linear(num_features, 512),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(p=0.2),
+            torch.nn.Linear(512, len(CLASS_NAMES)),
+        )
         return model
 
     def _load_weights(self, path: str) -> None:
