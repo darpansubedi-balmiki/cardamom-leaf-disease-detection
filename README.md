@@ -253,17 +253,78 @@ Health check endpoint.
 ### POST /predict
 Upload an image for disease prediction.
 
-**Request:**
-- Content-Type: `multipart/form-data`
-- Body: `file` (image file)
+**Request (multipart/form-data):**
 
-**Response:**
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `file` | file | — | Leaf image (JPEG/PNG/WebP) |
+| `confidence_threshold` | float (0–1) | 0.60 | Per-request confidence threshold |
+| `top_k` | int (1–10) | 3 | Number of top predictions to return |
+| `include_severity` | bool | false | When `true`, also compute severity and return Grad-CAM heatmap |
+| `severity_heatmap_threshold` | float (0–1) | env default | Binarisation threshold for severity heuristic |
+
+**Default response (without severity):**
 ```json
 {
-  "class_name": "Colletotrichum Blight",
-  "confidence": 0.85,
-  "heatmap": "base64_encoded_png_string"
+  "top_class": "Colletotrichum Blight",
+  "top_probability": 0.87,
+  "top_probability_pct": 87.0,
+  "is_uncertain": false,
+  "confidence_threshold": 0.60,
+  "top_k": [
+    { "class_name": "Colletotrichum Blight", "probability": 0.87, "probability_pct": 87.0 },
+    { "class_name": "Phyllosticta Leaf Spot", "probability": 0.09, "probability_pct": 9.0 },
+    { "class_name": "Healthy", "probability": 0.04, "probability_pct": 4.0 }
+  ],
+  "heatmap": null,
+  "severity_stage": null,
+  "severity_percent": null,
+  "severity_method": "none"
 }
+```
+
+**Response with `include_severity=true`:**
+```json
+{
+  "top_class": "Colletotrichum Blight",
+  "top_probability": 0.87,
+  "top_probability_pct": 87.0,
+  "is_uncertain": false,
+  "confidence_threshold": 0.60,
+  "top_k": [ "..." ],
+  "heatmap": "<base64-encoded PNG of Grad-CAM overlay>",
+  "severity_stage": 2,
+  "severity_percent": 18.4,
+  "severity_method": "heuristic"
+}
+```
+
+**Severity stage mapping (default thresholds):**
+
+| Stage | % Area Affected | Label |
+|---|---|---|
+| 0 | 0 % | Healthy / no lesion |
+| 1 | 1–10 % | Mild |
+| 2 | 11–25 % | Moderate |
+| 3 | 26–50 % | Severe |
+| 4 | > 50 % | Very Severe |
+
+### Enabling / disabling severity computation
+
+Severity is opt-in: send `include_severity=true` in the form data to activate it.
+
+You can also control defaults via environment variables:
+
+| Variable | Default | Description |
+|---|---|---|
+| `SEVERITY_HEATMAP_THRESHOLD` | `0.6` | Heatmap pixels above this normalised value are treated as "affected" |
+| `SEVERITY_STAGE_THRESHOLDS` | `0,10,25,50,100` | Boundary percentages mapping to stages 0–4 |
+
+Example:
+```bash
+SEVERITY_HEATMAP_THRESHOLD=0.5 \
+SEVERITY_STAGE_THRESHOLDS="0,5,20,40,100" \
+uvicorn app.main:app --reload
 ```
 
 ## 🎯 How It Works
@@ -311,6 +372,10 @@ cd backend
 pytest
 ```
 
+Tests cover classification logic, top-k output, uncertainty thresholds, severity
+stage mapping, heuristic heatmap computation, and full API response schema
+(with and without `include_severity`).
+
 ### Frontend Testing
 
 ```bash
@@ -324,7 +389,28 @@ npm run build
 1. Start both servers
 2. Open http://localhost:5173
 3. Upload a test image
-4. Verify prediction results and heatmap display
+4. Verify prediction results and heatmap/severity display
+
+### Mask-based Severity Labelling CSV
+
+To compute `severity_percent` and `severity_stage` from annotated masks and
+output (or update) a `severity_labels.csv`:
+
+```bash
+python scripts/compute_severity_from_masks.py \
+  --image-dir     data/images \
+  --leaf-mask-dir data/masks/leaf \
+  --lesion-mask-dir data/masks/lesion \
+  --output        data/severity_labels.csv \
+  --stage-thresholds "0,10,25,50,100"
+```
+
+File expectations:
+- Each image in `--image-dir` must have a corresponding binary PNG mask with the
+  same filename stem in `--leaf-mask-dir` and `--lesion-mask-dir`.
+- Masks use white (> 127) for the foreground region.
+
+Output CSV columns: `image_path, leaf_mask_path, lesion_mask_path, severity_percent, severity_stage`
 
 ## 🎨 UI Features
 
