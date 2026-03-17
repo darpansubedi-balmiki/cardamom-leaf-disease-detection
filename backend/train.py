@@ -268,6 +268,16 @@ def train_model():
     print(f"Training samples: {len(train_dataset)}")
     print(f"Validation samples: {len(val_dataset)}")
     print(f"Classes: {train_dataset.classes}")
+    # ---- Class weights to handle imbalance ----
+    # train_dataset.targets is a list of class indices for each sample
+    targets = np.array(train_dataset.targets)
+    class_counts = np.bincount(targets, minlength=len(train_dataset.classes))
+    print(f"Train class counts: {dict(zip(train_dataset.classes, class_counts.tolist()))}")
+
+    # Inverse frequency weights (normalized)
+    class_weights = class_counts.sum() / (len(class_counts) * class_counts)
+    class_weights = torch.tensor(class_weights, dtype=torch.float32).to(Config.DEVICE)
+    print(f"Class weights: {dict(zip(train_dataset.classes, class_weights.detach().cpu().numpy().round(3).tolist()))}")
     
     # Create data loaders
     train_loader = DataLoader(
@@ -291,7 +301,7 @@ def train_model():
     print(f"\nModel created: EfficientNetV2-S")
     
     # Loss function and optimizer
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
     optimizer = optim.Adam(model.parameters(), lr=Config.LEARNING_RATE)
     
     # Learning rate scheduler
@@ -300,7 +310,8 @@ def train_model():
     )
     
     # Training loop
-    best_val_acc = 0.0
+    best_val_loss = float("inf")
+    best_val_acc = 0.0  # keep for printing only
     patience_counter = 0
     history = {
         'train_loss': [], 'train_acc': [],
@@ -334,17 +345,15 @@ def train_model():
         print(f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc * 100:.2f}%")
         print(f"Val Loss:   {val_loss:.4f} | Val Acc:   {val_acc * 100:.2f}%")
         
-        # Save best model
-        if val_acc > best_val_acc:
+        # Save best model (use val_loss, not val_acc)
+        if val_loss < best_val_loss - 1e-4:  # small threshold to avoid tiny fluctuations
+            best_val_loss = val_loss
             best_val_acc = val_acc
             patience_counter = 0
-            
-            # Create models directory if it doesn't exist
+
             Path("models").mkdir(exist_ok=True)
-            
-            # Save model
             torch.save(model.state_dict(), Config.MODEL_SAVE_PATH)
-            print(f"✓ Best model saved! (Val Acc: {val_acc * 100:.2f}%)")
+            print(f"✓ Best model saved! (Val Loss: {val_loss:.4f} | Val Acc: {val_acc * 100:.2f}%)")
         else:
             patience_counter += 1
             print(f"✗ No improvement. Patience: {patience_counter}/{Config.PATIENCE}")
@@ -356,7 +365,8 @@ def train_model():
     
     print("\n" + "=" * 60)
     print(f"Training completed!")
-    print(f"Best validation accuracy: {best_val_acc * 100:.2f}%")
+    print(f"Best validation loss: {best_val_loss:.4f}")
+    print(f"Val accuracy at best loss: {best_val_acc * 100:.2f}%")
     print(f"Model saved to: {Config.MODEL_SAVE_PATH}")
     
     return model, history
