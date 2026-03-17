@@ -6,11 +6,20 @@ import axios from 'axios';
 // API base URL
 const API_BASE_URL = 'http://localhost:8000';
 
-// Prediction response interface
+// Prediction response interface – mirrors PredictResponse from the backend.
 export interface PredictionResponse {
-  class_name: string;
-  confidence: number;
-  heatmap: string;
+  // Core classification fields
+  top_class: string;
+  top_probability: number;
+  top_probability_pct: number;
+  is_uncertain: boolean;
+  confidence_threshold: number;
+  top_k: Array<{ class_name: string; probability: number; probability_pct: number }>;
+  // Severity fields – present only when include_severity=true was sent
+  heatmap: string | null;
+  severity_stage: number | null;
+  severity_percent: number | null;
+  severity_method: string;
 }
 
 // Health check response interface
@@ -44,10 +53,16 @@ class ApiClient {
 
   /**
    * Send image for disease prediction.
+   *
+   * @param file             - The image file to analyse.
+   * @param includeSeverity  - When true, the response will include
+   *                           severity_stage, severity_percent, severity_method
+   *                           and a Grad-CAM heatmap overlay.
    */
-  async predict(file: File): Promise<PredictionResponse> {
+  async predict(file: File, includeSeverity = true): Promise<PredictionResponse> {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('include_severity', includeSeverity ? 'true' : 'false');
 
     const response = await this.client.post<PredictionResponse>(
       '/predict',
