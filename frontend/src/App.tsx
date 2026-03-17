@@ -1,14 +1,6 @@
 import { useState, ChangeEvent } from 'react';
-import { apiClient } from './api/client';
+import { apiClient, PredictionResponse } from './api/client';
 import './App.css';
-
-interface PredictionResponse {
-  class_name: string;
-  confidence: number;
-  heatmap: string;
-  model_trained?: boolean;
-  warning?: string;
-}
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -183,28 +175,73 @@ function App() {
               <div className="result-info">
                 <div className="result-item">
                   <span className="label">Disease Class:</span>
-                  <span className="value class-name">{result.class_name || 'Unknown'}</span>
+                  <span className="value class-name">
+                    {result.top_class || 'Unknown'}
+                    {result.is_uncertain && ' (Uncertain)'}
+                  </span>
                 </div>
 
                 <div className="result-item">
                   <span className="label">Confidence:</span>
                   <span className="value confidence">
-                    {typeof result.confidence === 'number' 
-                      ? `${(result.confidence * 100).toFixed(2)}%`
+                    {typeof result.top_probability === 'number' 
+                      ? `${(result.top_probability * 100).toFixed(2)}%`
                       : 'N/A'
                     }
                   </span>
                 </div>
 
-                {typeof result.confidence === 'number' && (
+                {typeof result.top_probability === 'number' && (
                   <div className="confidence-bar">
                     <div
                       className="confidence-fill"
-                      style={{ width: `${result.confidence * 100}%` }}
+                      style={{ width: `${result.top_probability * 100}%` }}
                     ></div>
                   </div>
                 )}
               </div>
+
+              {/* Show all predictions from top_k */}
+              {result.top_k && result.top_k.length > 0 && (
+                <div className="all-predictions">
+                  <h4>All Predictions</h4>
+                  <div className="predictions-list">
+                    {result.top_k.map((pred, index) => (
+                      <div key={index} className="prediction-item">
+                        <div className="prediction-header">
+                          <span className="prediction-name">{pred.class_name}</span>
+                          <span className="prediction-probability">
+                            {pred.probability_pct.toFixed(2)}%
+                          </span>
+                        </div>
+                        <div className="prediction-bar">
+                          <div
+                            className="prediction-fill"
+                            style={{ 
+                              width: `${pred.probability_pct}%`,
+                              backgroundColor: index === 0 ? '#4CAF50' : '#ddd'
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {result.is_uncertain && (
+                <div className="uncertainty-warning" style={{
+                  backgroundColor: '#fff3cd',
+                  border: '1px solid #ffc107',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  marginTop: '16px',
+                  color: '#856404'
+                }}>
+                  ⚠️ The model is uncertain about this prediction (confidence below {(result.confidence_threshold * 100).toFixed(0)}%). 
+                  Please verify with an expert.
+                </div>
+              )}
 
               <div className="heatmap-section">
                 <h3>Grad-CAM Heatmap</h3>

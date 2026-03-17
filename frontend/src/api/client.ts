@@ -7,10 +7,21 @@ import axios from 'axios';
 const API_BASE_URL = 'http://localhost:8000';
 
 // Prediction response interface
-export interface PredictionResponse {
+// Backend response structure
+export interface TopKPrediction {
   class_name: string;
-  confidence: number;
-  heatmap: string;
+  probability: number;
+  probability_pct: number;
+}
+
+export interface PredictionResponse {
+  top_class: string;
+  top_probability: number;
+  top_probability_pct: number;
+  is_uncertain: boolean;
+  confidence_threshold: number;
+  top_k: TopKPrediction[];
+  heatmap?: string;
   model_trained?: boolean;
   warning?: string;
 }
@@ -63,9 +74,9 @@ class ApiClient {
 
     // Validate response data
     const data = response.data;
-    if (!data || typeof data.confidence !== 'number' || !data.class_name) {
+    if (!data || typeof data.top_probability !== 'number' || !data.top_class) {
       console.error('Invalid API response:', data);
-      throw new Error('Invalid response from server');
+      throw new Error('Invalid response from server: missing or invalid prediction data');
     }
 
     return data;

@@ -2,10 +2,22 @@
  * TypeScript type definitions for the Cardamom Disease Detection App
  */
 
-export interface PredictionResponse {
+export interface TopKPrediction {
   class_name: string;
-  confidence: number;
-  heatmap: string; // Base64 encoded PNG
+  probability: number;
+  probability_pct: number;
+}
+
+export interface PredictionResponse {
+  top_class: string;
+  top_probability: number;
+  top_probability_pct: number;
+  is_uncertain: boolean;
+  confidence_threshold: number;
+  top_k: TopKPrediction[];
+  heatmap?: string; // Base64 encoded PNG
+  model_trained?: boolean;
+  warning?: string;
 }
 
 export interface DiseaseInfo {

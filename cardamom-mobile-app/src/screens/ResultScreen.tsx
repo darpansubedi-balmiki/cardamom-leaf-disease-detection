@@ -33,7 +33,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route }) => {
   const { imageUri, prediction } = route.params;
-  const diseaseInfo = getDiseaseInfoByName(prediction.class_name);
+  const diseaseInfo = getDiseaseInfoByName(prediction.top_class);
 
   const handleViewDetails = () => {
     if (diseaseInfo) {
@@ -61,10 +61,21 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
         <ImagePreview imageUri={imageUri} />
       </View>
 
+      {/* Warning if model is untrained */}
+      {prediction.warning && (
+        <View style={styles.warningBox}>
+          <Ionicons name="warning" size={20} color="#f57c00" />
+          <Text style={styles.warningText}>{prediction.warning}</Text>
+        </View>
+      )}
+
       {/* Prediction Result */}
       <View style={styles.resultCard}>
         <Text style={styles.resultLabel}>रोगको नाम (Disease)</Text>
-        <Text style={styles.diseaseNameEnglish}>{prediction.class_name}</Text>
+        <Text style={styles.diseaseNameEnglish}>
+          {prediction.top_class}
+          {prediction.is_uncertain && ' (Uncertain)'}
+        </Text>
         {diseaseInfo && (
           <Text style={styles.diseaseNameNepali}>{diseaseInfo.nameNepali}</Text>
         )}
@@ -75,10 +86,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
             <Text
               style={[
                 styles.confidenceValue,
-                { color: getConfidenceColor(prediction.confidence) },
+                { color: getConfidenceColor(prediction.top_probability) },
               ]}
             >
-              {formatConfidence(prediction.confidence)}
+              {formatConfidence(prediction.top_probability)}
             </Text>
           </View>
           <View style={styles.confidenceBar}>
@@ -86,26 +97,59 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
               style={[
                 styles.confidenceFill,
                 {
-                  width: `${prediction.confidence * 100}%`,
-                  backgroundColor: getConfidenceColor(prediction.confidence),
+                  width: `${prediction.top_probability * 100}%`,
+                  backgroundColor: getConfidenceColor(prediction.top_probability),
                 },
               ]}
             />
           </View>
         </View>
 
-        {prediction.confidence < 0.6 && (
+        {prediction.is_uncertain && (
           <View style={styles.warningBox}>
             <Ionicons name="warning" size={20} color="#f57c00" />
             <Text style={styles.warningText}>
-              कम विश्वास स्तर। कृपया स्पष्ट तस्बिरसँग पुन: प्रयास गर्नुहोस्।
+              कम विश्वास स्तर ({(prediction.confidence_threshold * 100).toFixed(0)}% भन्दा कम)। कृपया स्पष्ट तस्बिरसँग पुन: प्रयास गर्नुहोस् वा विशेषज्ञसँग परामर्श लिनुहोस्।
             </Text>
           </View>
         )}
       </View>
 
+      {/* All Predictions */}
+      {prediction.top_k && prediction.top_k.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>सबै भविष्यवाणीहरू (All Predictions)</Text>
+          {prediction.top_k.map((pred, index) => (
+            <View key={index} style={styles.predictionItem}>
+              <View style={styles.predictionHeader}>
+                <Text style={styles.predictionName}>{pred.class_name}</Text>
+                <Text style={[
+                  styles.predictionValue,
+                  { color: index === 0 ? '#4CAF50' : '#757575' }
+                ]}>
+                  {pred.probability_pct.toFixed(2)}%
+                </Text>
+              </View>
+              <View style={styles.predictionBar}>
+                <View
+                  style={[
+                    styles.predictionFill,
+                    {
+                      width: `${pred.probability_pct}%`,
+                      backgroundColor: index === 0 ? '#4CAF50' : '#BDBDBD',
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Heatmap */}
-      <HeatmapViewer heatmapBase64={prediction.heatmap} />
+      {prediction.heatmap && (
+        <HeatmapViewer heatmapBase64={prediction.heatmap} />
+      )}
 
       {/* Disease Information Card */}
       {diseaseInfo && (
@@ -273,4 +317,36 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#667eea',
   },
+  predictionItem: {
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  predictionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  predictionName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  predictionValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  predictionBar: {
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  predictionFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
 });
+  predictionItem: {
