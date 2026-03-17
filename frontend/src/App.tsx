@@ -255,7 +255,7 @@ function App() {
         )}
 
         <footer className="footer">
-          <p>Designed &amp; Developed by Darpan Subedi</p>
+          <p>Designed & Developed by Darpan Subedi</p>
         </footer>
       </div>
     </div>
