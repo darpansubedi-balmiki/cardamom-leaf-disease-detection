@@ -1,12 +1,26 @@
-import { useState, ChangeEvent } from 'react';
+import { useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { apiClient } from './api/client';
+import type { PredictionResponse } from './api/client';
 import './App.css';
 
-interface PredictionResponse {
-  class_name: string;
-  confidence: number;
-  heatmap: string;
-}
+/** Human-readable stage labels. */
+const STAGE_LABELS: Record<number, string> = {
+  0: 'Stage 0 – Healthy (no lesion)',
+  1: 'Stage 1 – Mild (1–10 %)',
+  2: 'Stage 2 – Moderate (11–25 %)',
+  3: 'Stage 3 – Severe (26–50 %)',
+  4: 'Stage 4 – Very Severe (> 50 %)',
+};
+
+/** Colour class for each stage badge. */
+const STAGE_COLOURS: Record<number, string> = {
+  0: 'stage-healthy',
+  1: 'stage-mild',
+  2: 'stage-moderate',
+  3: 'stage-severe',
+  4: 'stage-very-severe',
+};
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -83,6 +97,11 @@ function App() {
     }
   };
 
+  const hasSeverity =
+    result !== null &&
+    result.severity_stage !== null &&
+    result.severity_percent !== null;
+
   return (
     <div className="app">
       <div className="container">
@@ -150,43 +169,93 @@ function App() {
 
             <div className="result-card">
               <div className="result-info">
+                {/* Disease class */}
                 <div className="result-item">
                   <span className="label">Disease Class:</span>
-                  <span className="value class-name">{result.class_name}</span>
+                  <span className="value class-name">{result.top_class}</span>
                 </div>
 
+                {/* Confidence */}
                 <div className="result-item">
                   <span className="label">Confidence:</span>
                   <span className="value confidence">
-                    {(result.confidence * 100).toFixed(2)}%
+                    {result.top_probability_pct.toFixed(2)}%
                   </span>
                 </div>
 
                 <div className="confidence-bar">
                   <div
                     className="confidence-fill"
-                    style={{ width: `${result.confidence * 100}%` }}
+                    style={{ width: `${result.top_probability_pct}%` }}
                   ></div>
                 </div>
+
+                {/* Uncertainty warning */}
+                {result.is_uncertain && (
+                  <div className="uncertainty-warning">
+                    ⚠️ Low confidence – prediction may be unreliable.
+                  </div>
+                )}
+
+                {/* Severity section */}
+                {hasSeverity && (
+                  <div className="severity-section">
+                    <h3>Severity Estimation</h3>
+
+                    <div className="result-item">
+                      <span className="label">Stage:</span>
+                      <span
+                        className={`severity-badge ${STAGE_COLOURS[result.severity_stage!]}`}
+                      >
+                        {STAGE_LABELS[result.severity_stage!] ?? `Stage ${result.severity_stage}`}
+                      </span>
+                    </div>
+
+                    <div className="result-item">
+                      <span className="label">Area Affected:</span>
+                      <span className="value severity-percent">
+                        {result.severity_percent!.toFixed(1)}%
+                      </span>
+                    </div>
+
+                    <div className="severity-bar">
+                      <div
+                        className="severity-fill"
+                        style={{ width: `${result.severity_percent}%` }}
+                      ></div>
+                    </div>
+
+                    {result.severity_method === 'heuristic' && (
+                      <p className="severity-disclaimer">
+                        ℹ️ <strong>Estimate only.</strong> Severity was approximated from the
+                        Grad-CAM heatmap (heuristic method) and does not reflect true lesion
+                        area. For accurate quantification, use mask-based labelling.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="heatmap-section">
-                <h3>Grad-CAM Heatmap</h3>
-                <p className="heatmap-description">
-                  This visualization shows which regions of the leaf influenced the prediction
-                </p>
-                <img
-                  src={`data:image/png;base64,${result.heatmap}`}
-                  alt="Grad-CAM Heatmap"
-                  className="heatmap-image"
-                />
-              </div>
+              {/* Grad-CAM heatmap (returned with severity) */}
+              {result.heatmap && (
+                <div className="heatmap-section">
+                  <h3>Grad-CAM Heatmap</h3>
+                  <p className="heatmap-description">
+                    This visualization shows which regions of the leaf influenced the prediction
+                  </p>
+                  <img
+                    src={`data:image/png;base64,${result.heatmap}`}
+                    alt="Grad-CAM Heatmap"
+                    className="heatmap-image"
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}
 
         <footer className="footer">
-          <p>Designed & Developed by Darpan Subedi</p>
+          <p>Designed &amp; Developed by Darpan Subedi</p>
         </footer>
       </div>
     </div>
