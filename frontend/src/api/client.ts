@@ -11,6 +11,8 @@ export interface PredictionResponse {
   class_name: string;
   confidence: number;
   heatmap: string;
+  model_trained?: boolean;
+  warning?: string;
 }
 
 // Health check response interface
@@ -59,7 +61,14 @@ class ApiClient {
       }
     );
 
-    return response.data;
+    // Validate response data
+    const data = response.data;
+    if (!data || typeof data.confidence !== 'number' || !data.class_name) {
+      console.error('Invalid API response:', data);
+      throw new Error('Invalid response from server');
+    }
+
+    return data;
   }
 }
 

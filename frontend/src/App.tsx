@@ -6,6 +6,8 @@ interface PredictionResponse {
   class_name: string;
   confidence: number;
   heatmap: string;
+  model_trained?: boolean;
+  warning?: string;
 }
 
 function App() {
@@ -49,17 +51,33 @@ function App() {
     setResult(null);
 
     try {
+      console.log('Sending image to API:', selectedFile.name);
       const response = await apiClient.predict(selectedFile);
+      console.log('Received response:', response);
+      
+      // Validate response
+      if (!response || typeof response.confidence !== 'number') {
+        throw new Error('Invalid response from server: missing or invalid confidence value');
+      }
+      
       setResult(response);
     } catch (err: any) {
       console.error('Prediction error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        code: err.code
+      });
 
       if (err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else if (err.code === 'ECONNABORTED') {
         setError('Request timeout. Please try again.');
       } else if (err.code === 'ERR_NETWORK') {
-        setError('Cannot connect to server. Make sure the backend is running.');
+        setError('Cannot connect to server. Make sure the backend is running at http://localhost:8000');
+      } else if (err.message) {
+        setError(err.message);
       } else {
         setError('An error occurred during analysis. Please try again.');
       }
@@ -148,26 +166,44 @@ function App() {
           <div className="results-section">
             <h2>Results</h2>
 
+            {result.warning && (
+              <div className="warning-message" style={{
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                marginBottom: '16px',
+                color: '#856404'
+              }}>
+                {result.warning}
+              </div>
+            )}
+
             <div className="result-card">
               <div className="result-info">
                 <div className="result-item">
                   <span className="label">Disease Class:</span>
-                  <span className="value class-name">{result.class_name}</span>
+                  <span className="value class-name">{result.class_name || 'Unknown'}</span>
                 </div>
 
                 <div className="result-item">
                   <span className="label">Confidence:</span>
                   <span className="value confidence">
-                    {(result.confidence * 100).toFixed(2)}%
+                    {typeof result.confidence === 'number' 
+                      ? `${(result.confidence * 100).toFixed(2)}%`
+                      : 'N/A'
+                    }
                   </span>
                 </div>
 
-                <div className="confidence-bar">
-                  <div
-                    className="confidence-fill"
-                    style={{ width: `${result.confidence * 100}%` }}
-                  ></div>
-                </div>
+                {typeof result.confidence === 'number' && (
+                  <div className="confidence-bar">
+                    <div
+                      className="confidence-fill"
+                      style={{ width: `${result.confidence * 100}%` }}
+                    ></div>
+                  </div>
+                )}
               </div>
 
               <div className="heatmap-section">
@@ -175,11 +211,15 @@ function App() {
                 <p className="heatmap-description">
                   This visualization shows which regions of the leaf influenced the prediction
                 </p>
-                <img
-                  src={`data:image/png;base64,${result.heatmap}`}
-                  alt="Grad-CAM Heatmap"
-                  className="heatmap-image"
-                />
+                {result.heatmap ? (
+                  <img
+                    src={`data:image/png;base64,${result.heatmap}`}
+                    alt="Grad-CAM Heatmap"
+                    className="heatmap-image"
+                  />
+                ) : (
+                  <p>Heatmap not available</p>
+                )}
               </div>
             </div>
           </div>
