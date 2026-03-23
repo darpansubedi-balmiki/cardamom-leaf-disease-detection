@@ -56,7 +56,7 @@ class Config:
     BATCH_SIZE = 32
     NUM_EPOCHS = 50
     LEARNING_RATE = 0.001
-    NUM_CLASSES = 3
+    NUM_CLASSES = 4
     IMG_SIZE = 224
     
     # Device
@@ -65,8 +65,8 @@ class Config:
     # Early stopping
     PATIENCE = 10
     
-    # Class names
-    CLASS_NAMES = ["colletotrichum_blight", "phyllosticta_leaf_spot", "healthy"]
+    # Class names (alphabetical order -- matches ImageFolder sorting)
+    CLASS_NAMES = ["colletotrichum_blight", "healthy", "other", "phyllosticta_leaf_spot"]
 
 
 def get_data_transforms():
@@ -256,12 +256,14 @@ def train_model():
         print("   dataset/")
         print("   ├── train/")
         print("   │   ├── colletotrichum_blight/")
-        print("   │   ├── phyllosticta_leaf_spot/")
-        print("   │   └── healthy/")
+        print("   │   ├── healthy/")
+        print("   │   ├── other/")
+        print("   │   └── phyllosticta_leaf_spot/")
         print("   └── val/")
         print("       ├── colletotrichum_blight/")
-        print("       ├── phyllosticta_leaf_spot/")
-        print("       └── healthy/")
+        print("       ├── healthy/")
+        print("       ├── other/")
+        print("       └── phyllosticta_leaf_spot/")
         sys.exit(1)
     
     print(f"\nDataset loaded:")

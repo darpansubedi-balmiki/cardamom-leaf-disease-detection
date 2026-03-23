@@ -294,6 +294,16 @@ async def predict(
     # Predict (top-k + uncertain)
     result = _classifier.predict(image)
 
+    # Reject non-cardamom images
+    if result.top_class == "Other":
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "The uploaded image does not appear to be a cardamom leaf. "
+                "Please upload a clear photo of a cardamom leaf."
+            ),
+        )
+
     heatmap_b64: Optional[str] = None
     severity: Optional[SeverityResult] = None
 
