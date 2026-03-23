@@ -20,6 +20,7 @@ export interface PredictionResponse {
   severity_stage: number | null;
   severity_percent: number | null;
   severity_method: string;
+  warning: string[] | null; // Any warnings or notes about the prediction
 }
 
 // Health check response interface

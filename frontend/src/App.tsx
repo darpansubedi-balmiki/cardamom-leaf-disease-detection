@@ -1,312 +1,279 @@
-import { useState } from 'react';
-import type { ChangeEvent } from 'react';
-import { apiClient } from './api/client';
-import type { PredictionResponse } from './api/client';
-import './App.css';
+import { useState } from "react";
+import type { ChangeEvent } from "react";
+import { apiClient } from "./api/client";
+import type { PredictionResponse } from "./api/client";
+import { ADVICE_MAP } from "./utils/AdviceMap";
+import { STAGE_BADGE_TW, STAGE_LABELS } from "./utils/StageLabel";
 
-/** Human-readable stage labels. */
-const STAGE_LABELS: Record<number, string> = {
-  0: 'Stage 0 – Healthy (no lesion)',
-  1: 'Stage 1 – Mild (1–10 %)',
-  2: 'Stage 2 – Moderate (11–25 %)',
-  3: 'Stage 3 – Severe (26–50 %)',
-  4: 'Stage 4 – Very Severe (> 50 %)',
-};
 
-/** Colour class for each stage badge. */
-const STAGE_COLOURS: Record<number, string> = {
-  0: 'stage-healthy',
-  1: 'stage-mild',
-  2: 'stage-moderate',
-  3: 'stage-severe',
-  4: 'stage-very-severe',
-};
-interface PredictionResponse {
-  class_name: string;
-  confidence: number;
-  heatmap: string;
-  model_trained?: boolean;
-  warning?: string | null;
-}
-
-type Advice = {
-  nepaliName: string;
-  prevention: string[];
-  cure: string[];
-};
-
-const ADVICE_MAP: Record<string, Advice> = {
-  'Colletotrichum Blight': {
-    nepaliName: 'पात डढ्ने रोग',
-    prevention: [
-      'बोटबीचको दूरी मिलाएर हावापानी चल्ने बनाउनुहोस् (घना छायाँ/आर्द्रता कम गर्ने)।',
-      'बिरामी पात/डाँठ तुरुन्त हटाएर नष्ट गर्नुहोस् (खेतमै थुपारेर नराख्नुहोस्)।',
-      'बगैँचामा पानी जम्न नदिनुहोस्; ड्रेनेज राम्रो बनाउनुहोस्।',
-      'बेलाबेलामा झार सफा गरी खेत सफा राख्नुहोस्।',
-      'नर्सरी/रोपाइँ सामग्री स्वस्थ र रोगमुक्त प्रयोग गर्नुहोस्।',
-    ],
-    cure: [
-      'संक्रमित पात काटेर हटाउनुहोस् र खेत बाहिर नष्ट गर्नुहोस्।',
-      'रोग बढिरहेको बेला माथिबाट पानी छर्किने सिंचाइ (overhead irrigation) कम गर्नुहोस्।',
-      'स्थानीय कृषि प्राविधिकको सल्लाह अनुसार उपयुक्त फफूँदनाशक (fungicide) छर्कनुहोस् (डोज/अन्तराल पालन गर्नुहोस्)।',
-      'फेरि–फेरि एउटै औषधि मात्र नदोहो¥याई समूह परिवर्तन (rotation) गर्नुहोस् ताकि प्रतिरोध (resistance) नबढोस्।',
-    ],
-  },
-
-  'Phyllosticta Leaf Spot': {
-    nepaliName: 'पातमा दाग लाग्ने रोग',
-    prevention: [
-      'बोटलाई घना हुन नदिन छाँटाइ/सफाइ गरी हावा चल्ने बनाउनुहोस्।',
-      'बिरामी पात संकलन गरेर नष्ट गर्नुहोस्।',
-      'पात लामो समय भिजिरहने अवस्था (लगातार आर्द्रता) कम गर्ने व्यवस्थापन गर्नुहोस्।',
-      'सन्तुलित मलखाद प्रयोग गर्नुहोस्; अत्यधिक नाइट्रोजनबाट नरम पात बढी संवेदनशील हुन सक्छ।',
-    ],
-    cure: [
-      'रोग लागेको भाग काटेर हटाउनुहोस्।',
-      'रोग फैलिएको अवस्थामा कृषि प्राविधिकको सल्लाह अनुसार उपयुक्त फफूँदनाशक छर्कनुहोस्।',
-      'छर्काइपछि पनि सुधार नआएमा रोग पहिचान/डोज पुनः पुष्टि गर्न नजिकको कृषि कार्यालय/प्रयोगशालासँग परामर्श गर्नुहोस्।',
-    ],
-  },
-
-  Healthy: {
-    nepaliName: 'स्वस्थ (रोग देखिएको छैन)',
-    prevention: [
-      'बगैँचा सफा राख्नुहोस्, झारपात नियन्त्रण गर्नुहोस्।',
-      'पानी जम्न नदिनुहोस्; राम्रो निकास (drainage) बनाउनुहोस्।',
-      'बोटलाई धेरै घना हुन नदिन हल्का छाँटाइ गरी हावा चल्ने बनाउनुहोस्।',
-      'सन्तुलित मलखाद/जैविक मल प्रयोग गर्नुहोस् र माटोको स्वास्थ्य सुधार गर्नुहोस्।',
-      'समय–समयमा पात निरीक्षण गर्नुहोस्—दाग/किरा देखिनासाथ छिटो व्यवस्थापन गर्नुहोस्।',
-    ],
-    cure: [
-      'हाल उपचार आवश्यक छैन।',
-      'यदि भविष्यमा दाग/डढाइ/पहेंलोपन बढेमा फोटोसहित पुन: परीक्षण गर्नुहोस् वा कृषि प्राविधिकसँग सल्लाह लिनुहोस्।',
-    ],
-  },
-
-  Uncertain: {
-    nepaliName: 'अनिश्चित',
-    prevention: [
-      'फोटो स्पष्ट (फोकस भएको) र पात नजिकबाट खिचेर पुन: प्रयास गर्नुहोस्।',
-      'धेरै पात/पृष्ठभूमि नआउने गरी एउटै पात केन्द्रमा राख्नुहोस्।',
-      'प्राकृतिक उज्यालोमा फोटो खिच्नुहोस् (धेरै अँध्यारो/धेरै glare भएमा नतिजा बिग्रिन सक्छ)।',
-    ],
-    cure: [
-      'यदि रोग शंका छ भने नजिकको कृषि प्राविधिक/कृषि कार्यालयमा देखाएर पुष्टि गर्नुहोस्।',
-    ],
-  },
-};
-
-function App() {
+export default function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const [result, setResult] = useState<PredictionResponse | null>(null);
 
-  const advice = result ? ADVICE_MAP[result.class_name] : undefined;
+  const advice = result ? ADVICE_MAP[result.top_class] : undefined;
 
-  /**
-   * Handle file selection.
-   */
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file');
+      if (!file.type.startsWith("image/")) {
+        setError("Please select a valid image file");
         return;
       }
 
       setSelectedFile(file);
-      setError('');
+      setError("");
       setResult(null);
 
-      // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
   };
 
-  /**
-   * Handle image analysis.
-   */
   const handleAnalyze = async () => {
     if (!selectedFile) return;
 
     setIsLoading(true);
-    setError('');
+    setError("");
     setResult(null);
 
     try {
       const response = await apiClient.predict(selectedFile);
       setResult(response);
     } catch (err: any) {
-      console.error('Prediction error:', err);
+      console.error("Prediction error:", err);
 
       if (err.response?.data?.detail) {
         setError(err.response.data.detail);
-      } else if (err.code === 'ECONNABORTED') {
-        setError('Request timeout. Please try again.');
-      } else if (err.code === 'ERR_NETWORK') {
-        setError('Cannot connect to server. Make sure the backend is running.');
+      } else if (err.code === "ECONNABORTED") {
+        setError("Request timeout. Please try again.");
+      } else if (err.code === "ERR_NETWORK") {
+        setError("Cannot connect to server. Make sure the backend is running.");
       } else {
-        setError('An error occurred during analysis. Please try again.');
+        setError("An error occurred during analysis. Please try again.");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  /**
-   * Reset all state.
-   */
   const handleReset = () => {
     setSelectedFile(null);
-    setPreviewUrl('');
-    setError('');
+    setPreviewUrl("");
+    setError("");
     setResult(null);
 
-    // Clean up preview URL
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
   };
 
   const hasSeverity =
-    result !== null &&
-    result.severity_stage !== null &&
-    result.severity_percent !== null;
+    result !== null && result.severity_stage !== null && result.severity_percent !== null;
 
   return (
-    <div className="app">
-      <div className="container">
-        <header className="header">
-          <h1>Cardamom Leaf Disease Detection</h1>
-          <p>Upload a cardamom leaf image to detect diseases</p>
+    <div className="min-h-screen bg-linear-to-br from-indigo-500 to-purple-700 px-4 py-8">
+      <div className="mx-auto max-w-225 rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.3)] sm:p-10">
+        {/* Header */}
+        <header className="mb-10 text-center">
+          <h1 className="text-3xl font-bold text-slate-800 sm:text-4xl">
+            Cardamom Leaf Disease Detection
+          </h1>
+          <p className="mt-2 text-base text-slate-600 sm:text-lg">
+            Upload a cardamom leaf image to detect diseases
+          </p>
         </header>
 
-        <div className="upload-section">
+        {/* Upload section */}
+        <div className="mb-8 flex flex-wrap items-center justify-center gap-4">
           <input
             type="file"
             id="file-input"
             accept="image/*"
             onChange={handleFileChange}
-            className="file-input"
+            className="hidden"
           />
-          <label htmlFor="file-input" className="file-label">
-            📁 Choose Image
+
+          <label
+            htmlFor="file-input"
+            className="inline-flex cursor-pointer items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-700 px-8 py-3 text-base font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+          >
+            Choose Image
           </label>
 
-          {selectedFile && <span className="file-name">{selectedFile.name}</span>}
+          {selectedFile && (
+            <span className="max-w-75 truncate text-sm text-slate-600">
+              {selectedFile.name}
+            </span>
+          )}
+        </div>
+        <div className={`grid gap-8 mb-8 ${result ? "grid-cols-2" : "grid-cols-1"}`}>
+          {/* Preview */}
+          {(!result && previewUrl) && (
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-slate-800">Preview</h3>
+              <p className="mt-2 text-sm italic text-slate-600">
+                This is the original image you uploaded. The analysis results are based on this image.
+              </p>
+              <div className="relative max-w-100 mx-auto mt-5">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="mx-auto max-h-100 w-full max-w-full rounded-xl object-contain"
+                />
+
+                {
+                  isLoading &&
+                  <div className="absolute inset-0 rounded-xl overflow-hidden">
+                    {/* scanning overlay */}
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+
+                    {/* scanning line */}
+                    <div className="absolute left-0 w-full h-1 bg-green-400 animate-scan" />
+
+                    {/* text */}
+                    <div className="absolute bottom-3 left-0 right-0 text-center text-sm tracking-wide" />
+                  </div>
+                }
+              </div>
+            </div>
+          )}
+
+          {result &&
+            result.heatmap && (
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-slate-800">Grad-CAM Heatmap</h3>
+                <p className="mt-2 text-sm italic text-slate-600">
+                  This visualization shows which regions of the leaf influenced the prediction
+                </p>
+                <img
+                  src={`data:image/png;base64,${result.heatmap}`}
+                  alt="Grad-CAM Heatmap"
+                  className="mx-auto mt-5 max-h-125 w-full rounded-xl object-contain"
+                />
+              </div>
+            )}
         </div>
 
-        {previewUrl && (
-          <div className="preview-section">
-            <h3>Preview</h3>
-            <img src={previewUrl} alt="Preview" className="preview-image" />
-          </div>
-        )}
-
-        <div className="action-buttons">
+        {/* Action buttons */}
+        <div className="mb-8 flex flex-wrap justify-center gap-4">
           <button
             onClick={handleAnalyze}
             disabled={!selectedFile || isLoading}
-            className="btn btn-primary"
+            className="inline-flex items-center gap-2 rounded-full bg-linear-to-br from-indigo-500 to-purple-700 px-10 py-3 text-base font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLoading ? (
               <>
-                <span className="spinner"></span>
+                <span className="h-4.5 w-4.5 animate-spin rounded-full border-[3px] border-white/30 border-t-white" />
                 Analyzing...
               </>
             ) : (
-              'Analyze'
+              "Analyze"
             )}
           </button>
 
           {(selectedFile || result) && (
-            <button onClick={handleReset} className="btn btn-secondary">
+            <button
+              onClick={handleReset}
+              className="inline-flex items-center justify-center rounded-full bg-slate-100 px-10 py-3 text-base font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:bg-slate-200"
+            >
               Reset
             </button>
           )}
         </div>
 
-        {error && <div className="error-message">⚠️ {error}</div>}
+        {/* Error */}
+        {error && (
+          <div className="mb-6 rounded-lg border-2 border-red-200 bg-red-50 p-4 text-center font-medium text-red-700">
+            ⚠️ {error}
+          </div>
+        )}
 
+        {/* Results */}
         {result && (
-          <div className="results-section">
-            <h2>Results</h2>
+          <div className="mt-10">
+            <h2 className="mb-6 text-center text-2xl font-bold text-slate-800">Results</h2>
 
             {result.warning && (
-              <div className="error-message" style={{ marginBottom: 12 }}>
+              <div className="mb-3 rounded-lg border-2 border-amber-200 bg-amber-50 p-4 text-center font-medium text-amber-800">
                 {result.warning}
               </div>
             )}
 
-            <div className="result-card">
-              <div className="result-info">
+            <div className="rounded-xl bg-linear-to-br from-slate-50 to-indigo-100 p-6 shadow-md sm:p-8">
+              {/* Result items */}
+              <div className="space-y-4">
                 {/* Disease class */}
-                <div className="result-item">
-                  <span className="label">Disease Class:</span>
-                  <span className="value class-name">{result.top_class}</span>
-                  <span className="value class-name">
-                    {result.class_name}
-                    {advice ? ` — ${advice.nepaliName}` : ''}
+                <div className="flex flex-col gap-2 rounded-lg bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-base font-semibold text-slate-600">Disease Class:</span>
+                  <span className="text-lg font-bold text-indigo-600">
+                    {result.top_class}
+                    {advice ? ` — ${advice.nepaliName}` : ""}
                   </span>
                 </div>
 
                 {/* Confidence */}
-                <div className="result-item">
-                  <span className="label">Confidence:</span>
-                  <span className="value confidence">
+                <div className="flex flex-col gap-2 rounded-lg bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-base font-semibold text-slate-600">Confidence:</span>
+                  <span className="text-lg font-bold text-purple-700">
                     {result.top_probability_pct.toFixed(2)}%
                   </span>
                 </div>
 
-                <div className="confidence-bar">
+                {/* Confidence bar */}
+                <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
                   <div
-                    className="confidence-fill"
+                    className="h-full rounded-full bg-linear-to-r from-indigo-500 to-purple-700 transition-[width] duration-500 ease-out"
                     style={{ width: `${result.top_probability_pct}%` }}
-                  ></div>
+                  />
                 </div>
 
                 {/* Uncertainty warning */}
                 {result.is_uncertain && (
-                  <div className="uncertainty-warning">
+                  <div className="rounded-lg border border-amber-400 bg-amber-100 px-4 py-3 text-sm text-amber-900">
                     ⚠️ Low confidence – prediction may be unreliable.
                   </div>
                 )}
 
                 {/* Severity section */}
-                {hasSeverity && (
-                  <div className="severity-section">
-                    <h3>Severity Estimation</h3>
+                {hasSeverity && result.top_class !== "Healthy" && (
+                  <div className="mt-6 border-t-2 border-dashed border-slate-200 pt-5">
+                    <h3 className="mb-3 text-lg font-semibold text-slate-800">
+                      Severity Estimation
+                    </h3>
 
-                    <div className="result-item">
-                      <span className="label">Stage:</span>
+                    <div className="flex flex-col gap-2 rounded-lg bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-base font-semibold text-slate-600">Stage:</span>
                       <span
-                        className={`severity-badge ${STAGE_COLOURS[result.severity_stage!]}`}
+                        className={[
+                          "inline-flex rounded-full px-3 py-1 text-sm font-semibold",
+                          STAGE_BADGE_TW[result.severity_stage!] ?? "bg-slate-100 text-slate-800",
+                        ].join(" ")}
                       >
-                        {STAGE_LABELS[result.severity_stage!] ?? `Stage ${result.severity_stage}`}
+                        {STAGE_LABELS[result.severity_stage!] ??
+                          `Stage ${result.severity_stage}`}
                       </span>
                     </div>
 
-                    <div className="result-item">
-                      <span className="label">Area Affected:</span>
-                      <span className="value severity-percent">
+                    <div className="flex flex-col gap-2 rounded-lg bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-base font-semibold text-slate-600">
+                        Area Affected:
+                      </span>
+                      <span className="text-lg font-bold text-red-700">
                         {result.severity_percent!.toFixed(1)}%
                       </span>
                     </div>
 
-                    <div className="severity-bar">
+                    <div className="mt-2 h-2.5 w-full overflow-hidden rounded bg-slate-200">
                       <div
-                        className="severity-fill"
+                        className="h-full rounded bg-linear-to-r from-emerald-600 via-amber-500 to-red-600 transition-[width] duration-300 ease-out"
                         style={{ width: `${result.severity_percent}%` }}
-                      ></div>
+                      />
                     </div>
 
-                    {result.severity_method === 'heuristic' && (
-                      <p className="severity-disclaimer">
+                    {result.severity_method === "heuristic" && (
+                      <p className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-relaxed text-sky-900">
                         ℹ️ <strong>Estimate only.</strong> Severity was approximated from the
                         Grad-CAM heatmap (heuristic method) and does not reflect true lesion
                         area. For accurate quantification, use mask-based labelling.
@@ -315,63 +282,63 @@ function App() {
                   </div>
                 )}
 
+                {/* Recommendations */}
                 {advice && (
-                  <div className="recommendation-section">
-                    <h3>सुझाव</h3>
+                  <div className="mt-6 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 sm:p-5">
+                    <h3 className="text-lg font-semibold text-slate-900">सुझाव</h3>
 
-                    <div className="advice-block">
-                      <h4>रोकथाम (Prevention)</h4>
-                      <ul>
-                        {advice.prevention.map((tip, idx) => (
-                          <li key={`prev-${idx}`}>{tip}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    <div className="mt-4 space-y-4 text-slate-800">
+                      <div>
+                        <h4 className="mb-2 font-semibold">रोकथाम (Prevention)</h4>
+                        <ul className="list-disc space-y-1 pl-5">
+                          {advice.prevention.map((tip, idx) => (
+                            <li key={`prev-${idx}`}>{tip}</li>
+                          ))}
+                        </ul>
+                      </div>
 
-                    <div className="advice-block">
-                      <h4>उपचार/व्यवस्थापन (Cure / Management)</h4>
-                      <ul>
-                        {advice.cure.map((tip, idx) => (
-                          <li key={`cure-${idx}`}>{tip}</li>
-                        ))}
-                      </ul>
-                    </div>
+                      <div>
+                        <h4 className="mb-2 font-semibold">उपचार/व्यवस्थापन (Cure / Management)</h4>
+                        <ul className="list-disc space-y-1 pl-5">
+                          {advice.cure.map((tip, idx) => (
+                            <li key={`cure-${idx}`}>{tip}</li>
+                          ))}
+                        </ul>
+                      </div>
 
-                    <div className="advice-block">
-                      <h4>सूचना</h4>
-                      <p style={{ margin: 0 }}>
-                        यी सुझावहरू सामान्य जानकारीका लागि हुन्। स्थानीय कृषि प्राविधिक/कृषि
-                        कार्यालयको सल्लाह अनुसार मात्र औषधि/छर्काइ प्रयोग गर्नुहोस्।
-                      </p>
+                      <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 leading-relaxed text-red-900">
+                        ℹ️ <strong>सूचना: </strong>
+                        यी सुझावहरू सामान्य जानकारीका लागि हुन्। स्थानीय कृषि
+                        प्राविधिक/कृषि कार्यालयको सल्लाह अनुसार मात्र औषधि/छर्काइ
+                        प्रयोग गर्नुहोस्।
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
-
-              {/* Grad-CAM heatmap (returned with severity) */}
-              {result.heatmap && (
-                <div className="heatmap-section">
-                  <h3>Grad-CAM Heatmap</h3>
-                  <p className="heatmap-description">
-                    This visualization shows which regions of the leaf influenced the prediction
-                  </p>
-                  <img
-                    src={`data:image/png;base64,${result.heatmap}`}
-                    alt="Grad-CAM Heatmap"
-                    className="heatmap-image"
-                  />
-                </div>
-              )}
             </div>
           </div>
         )}
 
-        <footer className="footer">
+        {/* Footer */}
+        <footer className="mt-12 border-t-2 border-slate-100 pt-6 text-center text-sm text-slate-400">
           <p>Designed & Developed by Darpan Subedi</p>
         </footer>
       </div>
+      <style>{`
+        @keyframes scan {
+          0% {
+            top: 0%;
+          }
+          100% {
+            top: 100%;
+          }
+        }
+
+        .animate-scan {
+          animation: scan 2s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
-
-export default App;
