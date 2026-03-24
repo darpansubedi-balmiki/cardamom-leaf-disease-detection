@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 CLASS_NAMES: list[str] = [
     "Colletotrichum Blight",
     "Healthy",
+    "Other",
     "Phyllosticta Leaf Spot",
 ]
 

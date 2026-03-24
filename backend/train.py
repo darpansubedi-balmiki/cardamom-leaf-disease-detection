@@ -65,7 +65,7 @@ class Config:
     # Early stopping
     PATIENCE = 10
     
-    # Class names
+    # Class names (alphabetical order -- matches ImageFolder sorting)
     CLASS_NAMES = ["colletotrichum_blight", "healthy", "other", "phyllosticta_leaf_spot"]
 
 
@@ -256,12 +256,14 @@ def train_model():
         print("   dataset/")
         print("   ├── train/")
         print("   │   ├── colletotrichum_blight/")
-        print("   │   ├── phyllosticta_leaf_spot/")
-        print("   │   └── healthy/")
+        print("   │   ├── healthy/")
+        print("   │   ├── other/")
+        print("   │   └── phyllosticta_leaf_spot/")
         print("   └── val/")
         print("       ├── colletotrichum_blight/")
-        print("       ├── phyllosticta_leaf_spot/")
-        print("       └── healthy/")
+        print("       ├── healthy/")
+        print("       ├── other/")
+        print("       └── phyllosticta_leaf_spot/")
         sys.exit(1)
     
     print(f"\nDataset loaded:")
