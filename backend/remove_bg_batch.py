@@ -1,131 +1,117 @@
 """
 Batch background removal script using rembg.
 
-Processes all images in --input folder, removes the background,
-composites onto a black RGB background, and saves as JPEG to --output.
+Removes backgrounds from all images in a source folder and saves them
+with pure black backgrounds to an output folder.
 
-Resume support: skips images that already exist in --output.
-
-Usage examples
---------------
-python remove_bg_batch.py --input dataset_raw/Healthy_1000 --output dataset_processed/healthy --limit 500
-python remove_bg_batch.py --input dataset_raw/Phyllosticta_LS_1000 --output dataset_processed/phyllosticta_leaf_spot --limit 500
-python remove_bg_batch.py --input dataset_raw/other/Apple --output dataset_processed/other --limit 60
+Usage:
+    python remove_bg_batch.py --input dataset_raw/Healthy_1000 --output dataset_processed/healthy
+    python remove_bg_batch.py --input dataset_raw/Healthy_1000 --output dataset_processed/healthy --limit 500
 """
-
-from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
 try:
-    import rembg
+    from rembg import remove
 except ImportError:
-    print("Error: rembg is not installed. Run: pip install rembg", file=sys.stderr)
+    print("Error: rembg is not installed. Run: pip install rembg")
     sys.exit(1)
 
-IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG", ".webp", ".WEBP"}
+
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 JPEG_QUALITY = 95
 
 
-def composite_on_black(rgba_image: Image.Image) -> Image.Image:
-    """Composite an RGBA image onto a solid black background, returning RGB."""
-    rgba = rgba_image.convert("RGBA")
-    background = Image.new("RGB", rgba.size, (0, 0, 0))
-    # Use the alpha channel as the paste mask
-    r, g, b, a = rgba.split()
-    background.paste(Image.merge("RGB", (r, g, b)), mask=a)
-    return background
+def remove_background_to_black(input_path: Path, output_path: Path) -> None:
+    """Remove background from an image and save with a pure black background."""
+    img = Image.open(input_path).convert("RGB")
+    result = remove(img)  # returns RGBA
+    if result.mode == "RGBA":
+        black_bg = Image.new("RGB", result.size, (0, 0, 0))
+        black_bg.paste(result, mask=result.split()[3])  # use alpha as mask
+        result = black_bg
+    result.save(output_path, "JPEG", quality=JPEG_QUALITY)
 
 
-def remove_bg_batch(input_dir: Path, output_dir: Path, limit: int | None) -> None:
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Collect all image files
-    all_files = sorted(
-        p for p in input_dir.iterdir()
-        if p.is_file() and p.suffix in IMAGE_EXTENSIONS
-    )
-
-    if not all_files:
-        print(f"No images found in {input_dir}")
-        return
-
-    # Apply limit
-    if limit is not None and limit > 0:
-        all_files = all_files[:limit]
-
-    # Filter out already-processed images (resume support)
-    to_process = []
-    skipped = 0
-    for src in all_files:
-        dest = output_dir / (src.stem + ".jpg")
-        if dest.exists():
-            skipped += 1
-        else:
-            to_process.append(src)
-
-    if skipped:
-        print(f"Skipping {skipped} already-processed image(s).")
-
-    if not to_process:
-        print("Nothing to process.")
-        return
-
-    print(f"Processing {len(to_process)} image(s) from '{input_dir}' → '{output_dir}'")
-
-    # Initialise a single rembg session for efficiency
-    session = rembg.new_session()
-
-    for src in tqdm(to_process, unit="img"):
-        try:
-            with Image.open(src) as img:
-                # rembg.remove() accepts a PIL Image and returns a PIL Image (RGBA)
-                rgba_result = rembg.remove(img, session=session)
-            rgb_result = composite_on_black(rgba_result)
-            dest = output_dir / (src.stem + ".jpg")
-            rgb_result.save(dest, format="JPEG", quality=JPEG_QUALITY)
-        except Exception as exc:
-            tqdm.write(f"WARNING: Failed to process '{src.name}': {exc}")
-
-    print("Done.")
+def collect_images(input_dir: Path) -> list[Path]:
+    """Collect all image files from input_dir (non-recursive)."""
+    images = []
+    for ext in IMAGE_EXTENSIONS:
+        images.extend(input_dir.glob(f"*{ext}"))
+        images.extend(input_dir.glob(f"*{ext.upper()}"))
+    return sorted(set(images))
 
 
-def parse_args() -> argparse.Namespace:
+def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Batch remove backgrounds from images using rembg.",
+        description="Batch-remove backgrounds from images using rembg."
     )
     parser.add_argument(
-        "--input",
-        required=True,
-        type=Path,
-        help="Source folder containing input images.",
+        "--input", "-i", required=True, type=Path, help="Input folder containing images"
     )
     parser.add_argument(
-        "--output",
-        required=True,
-        type=Path,
-        help="Destination folder for processed images.",
+        "--output", "-o", required=True, type=Path, help="Output folder for processed images"
     )
     parser.add_argument(
         "--limit",
+        "-l",
         type=int,
         default=None,
-        help="Maximum number of images to process (default: all).",
+        help="Maximum number of images to process (useful for class balancing)",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    input_dir: Path = args.input
+    output_dir: Path = args.output
+    limit: int | None = args.limit
+
+    if not input_dir.exists():
+        print(f"Error: Input directory '{input_dir}' does not exist.")
+        sys.exit(1)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    all_images = collect_images(input_dir)
+    if not all_images:
+        print(f"No images found in '{input_dir}'. Supported extensions: {IMAGE_EXTENSIONS}")
+        sys.exit(1)
+
+    if limit is not None:
+        all_images = all_images[:limit]
+
+    processed = 0
+    skipped = 0
+    failed = 0
+
+    print(f"Input:  {input_dir}  ({len(all_images)} images to process)")
+    print(f"Output: {output_dir}")
+
+    for img_path in tqdm(all_images, desc="Removing backgrounds", unit="img"):
+        output_path = output_dir / (img_path.stem + ".jpg")
+        if output_path.exists():
+            skipped += 1
+            continue
+        try:
+            remove_background_to_black(img_path, output_path)
+            processed += 1
+        except Exception as exc:
+            print(f"\nFailed to process '{img_path.name}': {exc}")
+            failed += 1
+
+    print()
+    print("─" * 50)
+    print(f"✅ Done!")
+    print(f"   Processed : {processed}")
+    print(f"   Skipped   : {skipped}  (already existed)")
+    print(f"   Failed    : {failed}")
+    print(f"   Total     : {processed + skipped + failed}")
+    print(f"   Output    : {output_dir}")
 
 
 if __name__ == "__main__":
-    args = parse_args()
-
-    if not args.input.is_dir():
-        print(f"Error: --input '{args.input}' is not a directory.", file=sys.stderr)
-        sys.exit(1)
-
-    remove_bg_batch(args.input, args.output, args.limit)
+    main()
