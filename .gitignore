@@ -113,4 +113,4 @@ backend/colletotrichum_blight
 backend/phyllosticta_leaf_spot
 backend/healthy
 backend/dataset
-backend/dataset_processed
+backend/dataset_preprocessed
