@@ -30,7 +30,7 @@ Department of Computer Engineering, [University Name]
 
 ## Abstract
 
-Cardamom (*Elettaria cardamomum*) is a commercially vital spice crop in Nepal, yet fungal foliar diseases—principally Colletotrichum Blight and Phyllosticta Leaf Spot—remain a major cause of yield loss. This project describes the end-to-end design, implementation, and evaluation of an intelligent, full-stack disease detection system for cardamom leaves using deep learning. The system employs a transfer-learned EfficientNetV2-S convolutional neural network trained on a curated dataset of 1,723 annotated images across three active classes (Colletotrichum Blight, Phyllosticta Leaf Spot, and Healthy), organized into a 70/15/15 train/validation/test split, with a four-class model architecture ready for future Other-class integration. The backend is a RESTful API implemented with FastAPI and PyTorch, while the user interface is provided through a React TypeScript web application and a bilingual (English/Nepali) React Native mobile application. The system delivers real-time disease classification with top-*k* probability outputs, uncertainty flagging below a configurable confidence threshold, Gradient-weighted Class Activation Mapping (Grad-CAM) heatmap visualization for interpretability, and an optional heuristic severity estimation module. Designed for practical adoption by cardamom farmers and agronomists in Nepal, the system is thoroughly tested, modularly architected, and documented to support reproducibility and further research.
+Cardamom (*Elettaria cardamomum*) is a commercially vital spice crop in Nepal, yet fungal foliar diseases—principally Colletotrichum Blight and Phyllosticta Leaf Spot—remain a major cause of yield loss. This proposal outlines the design and planned implementation of an intelligent, full-stack disease detection system for cardamom leaves using deep learning. The system will employ a transfer-learned EfficientNetV2-S convolutional neural network to be trained on a curated dataset of 1,723 annotated images across three disease classes, organized into a 70/15/15 train/validation/test split. The backend will be implemented as a RESTful API using FastAPI and PyTorch, and the user interface will be delivered through both a React TypeScript web application and a bilingual (English/Nepali) React Native mobile application. The system will provide real-time disease classification with top-*k* probability outputs, uncertainty flagging below a configurable confidence threshold, Gradient-weighted Class Activation Mapping (Grad-CAM) heatmap visualization for interpretability, and an optional heuristic severity estimation module. Designed for practical adoption by cardamom farmers and agronomists in Nepal, the proposed system is expected to achieve at least 85% overall classification accuracy and sub-second inference latency, offering a scalable foundation for precision agriculture applications across the Himalayan region.
 
 *Keywords:* cardamom, leaf disease detection, EfficientNetV2, transfer learning, Grad-CAM, FastAPI, React Native, precision agriculture, Nepal
 
@@ -44,11 +44,13 @@ Cardamom (*Elettaria cardamomum*) is a commercially vital spice crop in Nepal, y
 4. [Literature Review](#4-literature-review)
 5. [Methodology](#5-methodology)
 6. [System Architecture and Design](#6-system-architecture-and-design)
-7. [Implementation Details](#7-implementation-details)
-8. [Testing and Evaluation](#8-testing-and-evaluation)
-9. [Results and Discussion](#9-results-and-discussion)
-10. [Conclusion and Future Work](#10-conclusion-and-future-work)
-11. [References](#11-references)
+7. [Evaluation Plan](#7-evaluation-plan)
+8. [Expected Outcomes](#8-expected-outcomes)
+9. [Project Timeline](#9-project-timeline)
+10. [Risk Assessment](#10-risk-assessment)
+11. [Ethical Considerations](#11-ethical-considerations)
+12. [Conclusion](#12-conclusion)
+13. [References](#13-references)
 
 ---
 
@@ -58,9 +60,9 @@ Agriculture constitutes the primary livelihood of the majority of Nepal's popula
 
 Traditional disease identification depends on visual inspection by trained agronomists or extension officers—resources that are scarce in the remote hill communities where cardamom is principally grown. This approach is further constrained by the visual similarity of early-stage lesions across different fungal diseases, making reliable naked-eye differentiation difficult. With rapid advances in computer vision and deep learning, automated image-based plant disease detection has emerged as a scalable and cost-effective alternative (Mohanty et al., 2016). Convolutional Neural Networks (CNNs) and modern CNN variants have demonstrated expert-level performance in plant pathology classification tasks (Thapa et al., 2020), yet few practical implementations have been designed for the language and connectivity constraints faced by South Asian smallholder farmers.
 
-This project addresses the gap between deep learning research and field-level agricultural adoption by developing a complete, end-to-end intelligent system. The system integrates an EfficientNetV2-S neural network backbone with a FastAPI RESTful backend, a responsive React TypeScript web front-end, and a bilingual (English/Nepali) React Native mobile application. Grad-CAM visualization provides model interpretability by highlighting the leaf regions that most influenced each classification decision. An optional severity estimation module maps Grad-CAM activation intensity to a five-stage disease severity scale, supporting more informed management decisions.
+This project proposes to address the gap between deep learning research and field-level agricultural adoption by developing a complete, end-to-end intelligent system. The system will integrate an EfficientNetV2-S neural network backbone with a FastAPI RESTful backend, a responsive React TypeScript web front-end, and a bilingual (English/Nepali) React Native mobile application. Grad-CAM visualization will provide model interpretability by highlighting the leaf regions that most influence each classification decision. An optional severity estimation module will map Grad-CAM activation intensity to a five-stage disease severity scale, supporting more informed management decisions.
 
-The remainder of this proposal is organized as follows: Section 2 presents the problem statement; Section 3 outlines the project objectives; Section 4 reviews related work; Section 5 describes the methodology; Section 6 details the system architecture and design; Section 7 discusses implementation; Section 8 covers testing and evaluation; Section 9 presents results and discussion; and Section 10 concludes with future directions.
+The remainder of this proposal is organized as follows: Section 2 presents the problem statement; Section 3 outlines the project objectives; Section 4 reviews related work; Section 5 describes the methodology; Section 6 details the system architecture and design; Section 7 covers the evaluation plan; Section 8 presents expected outcomes; Section 9 provides a project timeline; Section 10 identifies project risks; Section 11 discusses ethical considerations; and Section 12 concludes.
 
 ---
 
@@ -78,19 +80,19 @@ There is therefore a clear need for an automated, real-time, image-based disease
 
 ### 3.1 Primary Objectives
 
-1. To develop and train a deep learning model for the automated classification of cardamom leaf images into three active disease categories—Colletotrichum Blight, Phyllosticta Leaf Spot, and Healthy—with a four-class model architecture that additionally supports future rejection of non-cardamom (*Other*) images.
-2. To design and implement a RESTful API backend that serves real-time predictions with confidence scores, top-*k* probability outputs, and an uncertainty-flagging mechanism.
-3. To build a responsive web-based user interface enabling users to upload leaf images and receive instant diagnostic results with visual explanation heatmaps.
-4. To develop a bilingual (English/Nepali) mobile application for iOS and Android platforms enabling farmers to capture or select leaf images for on-device diagnosis.
-5. To implement a Grad-CAM–based heatmap visualization module to provide spatial explanations of model predictions.
-6. To incorporate a heuristic severity estimation module that maps the proportion of Grad-CAM–activated leaf area to a five-stage severity scale.
+1. To develop and train a deep learning model that classifies cardamom leaf images into three disease categories—Colletotrichum Blight, Phyllosticta Leaf Spot, and Healthy—achieving an overall classification accuracy of at least 85% and a per-class F1-score of at least 0.70 on the held-out test set.
+2. To design and implement a RESTful API backend that serves real-time predictions with top-*k* confidence scores and an uncertainty-flagging mechanism, with mean inference latency below one second per image on standard CPU hardware.
+3. To build a responsive web-based user interface enabling users to upload leaf images and receive instant diagnostic results, including a Grad-CAM heatmap overlay and Nepali-language management recommendations.
+4. To develop a bilingual (English/Nepali) mobile application for iOS and Android that enables farmers to capture or select leaf images and obtain disease diagnoses with confidence scores displayed in Nepali.
+5. To implement a Grad-CAM–based visualization module that produces spatially coherent heatmaps confirmed by agronomic review to highlight lesion regions in at least 80% of correctly classified disease samples.
+6. To incorporate a heuristic severity estimation module that maps Grad-CAM–activated leaf area to a five-stage severity scale with stage assignments consistent with visual expert assessment on a representative test subset.
 
 ### 3.2 Secondary Objectives
 
-7. To curate and organize a labelled dataset of cardamom leaf images across the three active disease classes, partitioned into training, validation, and test sets, with the four-class model architecture ready for *Other*-class integration.
-8. To design a system architecture that supports future integration of background removal (U2-Net) and segmentation-based severity quantification.
-9. To evaluate the trained model on held-out test data using standard classification metrics—including per-class accuracy, precision, recall, F1-score, and a confusion matrix.
-10. To document the system thoroughly to facilitate reproducibility and further research.
+7. To curate and organize a labelled dataset of 1,723 cardamom leaf images across three active disease classes, partitioned into training (70%), validation (15%), and test (15%) subsets using a reproducible random split strategy.
+8. To design a modular system architecture that supports future integration of background removal and segmentation-based severity quantification without requiring structural re-engineering.
+9. To conduct a comprehensive evaluation of model performance using overall accuracy, per-class precision, recall, and F1-score, and to present results as a confusion matrix and per-class metrics chart.
+10. To document the system design, training procedure, and deployment process thoroughly to facilitate reproducibility and further research.
 
 ---
 
@@ -100,7 +102,7 @@ There is therefore a clear need for an automated, real-time, image-based disease
 
 The seminal contribution of Mohanty et al. (2016) demonstrated that CNNs could achieve 99.35% accuracy on the PlantVillage dataset when trained on 54,306 images spanning 26 diseases across 14 crop species. Using GoogLeNet with transfer learning, the authors established a benchmark for automated plant disease detection that inspired extensive subsequent research. However, the PlantVillage dataset was collected under controlled laboratory conditions, and later studies raised concerns regarding generalization to field-collected images with natural variation in illumination, pose, and background (Barbedo, 2018).
 
-Thapa et al. (2020) addressed this challenge through the PlantDoc dataset, containing 2,598 images collected under diverse real-world conditions across 13 plant species and 17 diseases. Classification accuracy on PlantDoc was substantially lower than on PlantVillage, highlighting the domain-gap challenge. Ferentinos (2018) compared multiple CNN architectures—AlexNet, VGGNet, GoogLeNet, and AlexNetOWTBn—on PlantVillage and confirmed that transfer learning with ImageNet-pretrained weights consistently outperformed training from scratch, particularly for smaller datasets, a finding directly relevant to the present work.
+Thapa et al. (2020) addressed this challenge through the PlantDoc dataset, containing 2,598 images collected under diverse real-world conditions across 13 plant species and 17 diseases. Classification accuracy on PlantDoc was substantially lower than on PlantVillage, highlighting the domain-gap challenge. Ferentinos (2018) compared multiple CNN architectures on PlantVillage and confirmed that transfer learning with ImageNet-pretrained weights consistently outperformed training from scratch, particularly for smaller datasets—a finding directly relevant to the present work.
 
 ### 4.2 EfficientNet and Transfer Learning
 
@@ -114,7 +116,7 @@ Model interpretability is essential in agricultural AI systems, where end-user t
 
 ### 4.4 Plant Disease Severity Estimation
 
-Beyond categorical diagnosis, quantifying the extent of leaf area affected provides actionable information for disease management. Pixel-level segmentation approaches, including U-Net (Ronneberger et al., 2015) and its variants, have been applied to lesion delineation in plant leaves. Background removal using U2-Net (Qin et al., 2020), a lightweight salient-object detection network, has been proposed as a preprocessing step to isolate the leaf region from complex field backgrounds. Where pixel-annotated masks are unavailable, heuristic severity estimation from attention heatmaps offers a practical low-cost approximation (Barbedo, 2017), as adopted in this system.
+Beyond categorical diagnosis, quantifying the extent of leaf area affected provides actionable information for disease management. Pixel-level segmentation approaches, including U-Net (Ronneberger et al., 2015) and its variants, have been applied to lesion delineation in plant leaves. Background removal using U2-Net (Qin et al., 2020), a lightweight salient-object detection network, has been proposed as a preprocessing step to isolate the leaf region from complex field backgrounds. Where pixel-annotated masks are unavailable, heuristic severity estimation from attention heatmaps offers a practical low-cost approximation (Barbedo, 2017), an approach that the proposed system will initially adopt.
 
 ### 4.5 Mobile and Web Deployment of Agricultural AI
 
@@ -124,31 +126,46 @@ Smartphone-based deployment of disease detection models has been advocated as a 
 
 *Colletotrichum gloeosporioides* and related species cause anthracnose-type blight in cardamom, manifesting as water-soaked lesions that expand into necrotic areas with light-brown centers and dark-brown margins (Paudel & Bhatt, 2019). *Phyllosticta* species cause leaf spot characterized by small circular-to-irregular spots with chlorotic halos. Both pathogens thrive under high humidity and temperatures of 20–30 °C, conditions endemic to cardamom cultivation regions in Nepal's eastern hill districts (Subba et al., 2021). Integrated management—combining early detection, targeted fungicide application, and cultural practices—represents the most effective control strategy.
 
+### 4.7 Comparative Summary of Related Work
+
+**Table 1**
+
+*Comparative overview of selected plant disease detection studies*
+
+| Study | Dataset | Architecture | Dataset Size | Disease Coverage | Mobile/Web Deployment | Local Language |
+|---|---|---|---|---|---|---|
+| Mohanty et al. (2016) | PlantVillage (controlled) | GoogLeNet | 54,306 | 26 diseases, 14 crops | None | No |
+| Ferentinos (2018) | PlantVillage (controlled) | AlexNet, VGG, GoogLeNet | 87,848 | 58 plant–disease pairs | None | No |
+| Ramcharan et al. (2017) | Field-collected cassava | Inception v3 | 2,756 | 5 classes | Mobile (prototype) | No |
+| Thapa et al. (2020) | PlantDoc (field) | Multiple CNNs | 2,598 | 17 diseases, 13 species | None | No |
+| Atila et al. (2021) | PlantVillage (controlled) | EfficientNet variants | 54,306 | 26 diseases | None | No |
+| **Proposed (Subedi, 2024)** | **Field-collected cardamom** | **EfficientNetV2-S** | **1,723** | **3 disease classes** | **Web + Mobile** | **English + Nepali** |
+
+*Note.* The proposed system is distinguished from prior work by its combination of field-collected domain-specific data, modern EfficientNetV2-S architecture, dual-platform deployment, and bilingual interface targeting Nepali-speaking farmers.
+
 ---
 
 ## 5. Methodology
 
 ### 5.1 Research Design
 
-This project follows an applied engineering research design integrating dataset curation, deep learning model development, software engineering, and user-interface design. The workflow proceeds through four major phases: (1) data collection and preparation, (2) image preprocessing and augmentation, (3) model training and optimization, and (4) system integration and deployment.
+This project will follow an applied engineering research design integrating dataset curation, deep learning model development, software engineering, and user-interface design. The workflow will proceed through four major phases: (1) data collection and preparation, (2) image preprocessing and augmentation, (3) model training and optimization, and (4) system integration and deployment.
 
 ### 5.2 Data Collection and Dataset Organization
 
-The dataset comprises 1,723 images of cardamom leaves distributed across three disease categories. Images were collected from cardamom plantations and organized into class-labelled source folders. After background removal preprocessing, the source images are stored under `backend/dataset_processed/` in four folders—`blight/` (600 images), `healthy/` (554), `other/` (830), and `spot/` (608). The training split was generated from the processed data using a custom `split_dataset.py` script, which applies per-class random shuffling with a fixed seed of 42 and copies files into `dataset/{train,val,test}/{class}` subdirectories, ensuring reproducibility and preventing data leakage across splits.
-
-The active training dataset (`backend/dataset/`) uses three disease classes:
+The dataset will comprise approximately 1,723 images of cardamom leaves distributed across three disease categories. Images will be collected from cardamom plantations and organized into class-labelled folders. The three target classes are:
 
 - **Colletotrichum Blight** — anthracnose-type fungal lesions
 - **Phyllosticta Leaf Spot** — circular fungal leaf spots
 - **Healthy** — uninfected cardamom leaves
 
-A fourth **Other** class (non-cardamom leaves, 830 images available in `dataset_processed/other/`) is declared in the model's output layer (`NUM_CLASSES = 4` in `classifier.py`). In the current implementation, this class is not yet included in the training split; the four-class architecture is a designed extension point to support inference-time rejection of non-cardamom inputs in future iterations. During inference with the current model, the probability mass assigned to the Other output node is disregarded, and predictions are resolved from the three active class scores via softmax ranking.
+A fourth *Other* class (non-cardamom leaves) will be retained in the model's output layer to support future inference-time rejection of non-cardamom inputs, though it will not be included in the initial training split. The dataset will be partitioned into training (70%), validation (15%), and test (15%) subsets using a stratified random split with a fixed seed to ensure reproducibility.
 
-> **Figure 1.** *Sample leaf images from the three active training classes: (a) Colletotrichum Blight showing water-soaked necrotic lesions, (b) Phyllosticta Leaf Spot showing circular spots with chlorotic margins, (c) Healthy leaf with uniform green coloration.* [Figure placeholder]
+> **Figure 1.** *Representative leaf images from the three active training classes: (a) Colletotrichum Blight, (b) Phyllosticta Leaf Spot, (c) Healthy.* [Figure placeholder]
 
-**Table 1**
+**Table 2**
 
-*Dataset distribution across active training classes and data splits*
+*Planned dataset distribution across classes and data splits*
 
 | Split | Colletotrichum Blight | Phyllosticta Leaf Spot | Healthy | Total |
 |---|---|---|---|---|
@@ -157,94 +174,66 @@ A fourth **Other** class (non-cardamom leaves, 830 images available in `dataset_
 | Test (15%) | 42 | 100 | 118 | **260** |
 | **Total** | **280** | **663** | **780** | **1,723** |
 
-*Note.* The model architecture declares four output classes (including Other); the current training split uses three classes. Class imbalance—Colletotrichum Blight (n = 280) versus Healthy (n = 780)—is mitigated through inverse-frequency class weighting during training.
+*Note.* Class imbalance—Colletotrichum Blight (n = 280) versus Healthy (n = 780)—will be mitigated through inverse-frequency class weighting of the loss function during training.
 
 ### 5.3 Image Preprocessing and Data Augmentation
 
-All images were preprocessed into a format compatible with EfficientNetV2-S input requirements. The training augmentation pipeline, implemented using `torchvision.transforms`, consists of the following operations applied sequentially:
+All images will be preprocessed to meet the input requirements of the EfficientNetV2-S architecture. The training augmentation pipeline will include: spatial resizing, random horizontal and vertical flipping, random rotation, color jitter (brightness, contrast, and saturation perturbation), random affine translation, and normalization using standard ImageNet channel statistics. These augmentations will expand effective dataset diversity and reduce overfitting by exposing the model to varied photometric and geometric conditions that simulate real-world capture variability.
 
-1. **Resize** — all images resized to 224 × 224 pixels.
-2. **Random Horizontal Flip** — applied with probability *p* = 0.5.
-3. **Random Vertical Flip** — applied with probability *p* = 0.5.
-4. **Random Rotation** — rotations uniformly sampled from [−30°, +30°].
-5. **Color Jitter** — brightness, contrast, and saturation each perturbed by a factor of ±0.2.
-6. **Random Affine Transform** — translations up to 10% of image dimensions.
-7. **ToTensor** — conversion of PIL Image to a PyTorch `FloatTensor` with values in [0, 1].
-8. **Normalize** — standardization using ImageNet channel statistics (mean = [0.485, 0.456, 0.406]; std = [0.229, 0.224, 0.225]).
-
-For validation and test splits, only Resize, ToTensor, and Normalize are applied. At inference, the preprocessing pipeline uses Resize(256) followed by CenterCrop(224), consistent with the standard ImageNet evaluation convention.
-
-Data augmentation expands effective dataset diversity and reduces overfitting by presenting the model with geometrically and photometrically varied views of each training image, simulating real-world variability in camera angle, illumination, and leaf orientation.
+For validation and test sets, only resizing and normalization will be applied, with no stochastic augmentation. At inference time, a center-crop strategy consistent with standard ImageNet evaluation practice will be used.
 
 ### 5.4 Model Architecture
 
-The classification backbone is EfficientNetV2-S (Tan & Le, 2021), loaded with default ImageNet-pretrained weights from the `torchvision` model zoo. The original 1,000-class ImageNet classifier head is replaced with a custom four-class classifier:
+The classification backbone will be EfficientNetV2-S (Tan & Le, 2021), loaded with default ImageNet-pretrained weights. The original ImageNet classification head will be replaced with a custom two-layer fully connected classifier incorporating intermediate dropout regularization to prevent overfitting:
 
-```
-EfficientNetV2-S Feature Extractor (1,280-dimensional output)
-  ↓
-Dropout(p = 0.30)
-  ↓
-Linear(1,280 → 512)
-  ↓
-ReLU
-  ↓
-Dropout(p = 0.20)
-  ↓
-Linear(512 → 4)   # Output logits for 4 disease classes
-```
+> **Figure 2.** *Schematic of the adapted EfficientNetV2-S classifier. The pretrained feature extraction trunk feeds into a two-layer fully connected head with dropout regularization, producing class logits.* [Figure placeholder]
 
-All backbone weights are fine-tuned jointly with the custom head during training (end-to-end fine-tuning), enabling the feature extractor to adapt its representations to the specific texture and color patterns characteristic of cardamom foliar diseases.
-
-> **Figure 2.** *Schematic of the adapted EfficientNetV2-S classifier. The pretrained feature extraction trunk feeds a two-layer fully connected head with intermediate dropout regularization, producing four class logits.* [Figure placeholder]
+All backbone weights will be fine-tuned jointly with the custom head during training (end-to-end fine-tuning), enabling the feature extractor to adapt its representations to the texture and color patterns characteristic of cardamom foliar diseases.
 
 ### 5.5 Model Training
 
-The model is trained using the configuration shown in Table 2.
+The model will be trained according to the configuration presented in Table 3.
 
-**Table 2**
+**Table 3**
 
-*Training hyperparameter configuration*
+*Planned training hyperparameter configuration*
 
 | Hyperparameter | Value |
 |---|---|
-| Input image size | 224 × 224 px |
+| Input image size | 224 × 224 pixels |
 | Batch size | 32 |
 | Maximum epochs | 50 |
 | Optimizer | Adam |
 | Initial learning rate | 0.001 |
 | Loss function | Weighted Cross-Entropy |
-| LR scheduler | ReduceLROnPlateau (factor = 0.5, patience = 5 epochs) |
+| Learning rate scheduler | ReduceLROnPlateau (patience = 5 epochs) |
 | Early stopping patience | 10 epochs |
-| Dropout — head layer 1 | 0.30 |
-| Dropout — head layer 2 | 0.20 |
+| Dropout regularization | Two-stage (0.30 / 0.20) |
 | Compute device | CUDA / MPS / CPU (auto-detected) |
 
-**Class Weighting.** Inverse-frequency weights are applied to the cross-entropy loss to counteract class imbalance. The weight for class *c* is:
+**Class Weighting.** Inverse-frequency weights will be applied to the cross-entropy loss to counteract class imbalance. The weight for class *c* is:
 
 $$w_c = \frac{N}{K \cdot n_c}$$
 
 where *N* is the total number of training images, *K* is the number of classes, and *n_c* is the number of training images in class *c*.
 
-**Early Stopping.** Training halts when the validation loss fails to decrease by more than 10⁻⁴ for 10 consecutive epochs. The model state dictionary corresponding to the minimum validation loss is retained as the final checkpoint.
+**Early Stopping.** Training will halt when the validation loss fails to improve for a fixed number of consecutive epochs, and the model weights corresponding to the minimum validation loss will be retained as the final checkpoint.
 
-**Learning Rate Scheduling.** The learning rate is halved when the validation loss plateaus for five consecutive epochs, implemented via PyTorch's `ReduceLROnPlateau` scheduler.
-
-The best model weights are saved to `models/cardamom_model.pt`. Training history (loss and accuracy curves) is plotted and saved to `training_history.png` using Matplotlib.
+**Learning Rate Scheduling.** The learning rate will be reduced when validation loss plateaus, enabling fine-grained weight adjustment in later training epochs.
 
 ### 5.6 Grad-CAM Visualization
 
-Post-inference explainability is provided via Gradient-weighted Class Activation Mapping (Grad-CAM; Selvaraju et al., 2017), implemented in `app/utils/grad_cam.py`. Forward and backward hooks are registered on the last `Conv2d` layer of EfficientNetV2-S's feature extractor, identified dynamically by traversing `model.features[-1].modules()`. The Grad-CAM heatmap for target class *c* is:
+Post-inference explainability will be provided via Gradient-weighted Class Activation Mapping (Grad-CAM; Selvaraju et al., 2017). Forward and backward hooks will be registered on the final convolutional layer of the EfficientNetV2-S feature extractor. The Grad-CAM heatmap for target class *c* is:
 
 $$L^c = \text{ReLU}\!\left(\sum_k \alpha^c_k \, A^k\right)$$
 
-where $A^k$ are the activations of the *k*-th feature map at the target layer, and $\alpha^c_k = \frac{1}{Z}\sum_i \sum_j \frac{\partial y^c}{\partial A^k_{ij}}$ are the globally averaged gradients of class score $y^c$ with respect to those activations. The heatmap is bilinearly upsampled to the original image dimensions, normalized to [0, 1], and composited onto the input image at α = 0.4 using OpenCV's JET colormap. Hooks are removed after each inference call to prevent memory accumulation.
+where $A^k$ are the activations of the *k*-th feature map at the target layer, and $\alpha^c_k = \frac{1}{Z}\sum_i \sum_j \frac{\partial y^c}{\partial A^k_{ij}}$ are the globally averaged gradients of the class score $y^c$ with respect to those activations. The resulting heatmap will be upsampled to the original image dimensions, normalized to [0, 1], and composited onto the input image using a false-color overlay to produce a visually interpretable result.
 
 ### 5.7 Severity Estimation
 
-When the request parameter `include_severity=true` is set, a heuristic severity score is derived from the normalized Grad-CAM heatmap. Pixels with a normalized activation value exceeding a configurable threshold (default: 0.6, set via environment variable `SEVERITY_HEATMAP_THRESHOLD`) are classified as "affected." Severity percentage is computed as the ratio of affected pixels to total pixels. This value is mapped to one of five ordinal severity stages (Table 3) via configurable boundary thresholds (default: `SEVERITY_STAGE_THRESHOLDS = 0,10,25,50,100`).
+An optional heuristic severity module will derive a disease severity score from the normalized Grad-CAM heatmap by classifying pixels with activation above a threshold as "affected" and computing the ratio of affected pixels to total pixels. This percentage will be mapped to one of five ordinal severity stages as described in Table 4.
 
-**Table 3**
+**Table 4**
 
 *Severity stage classification scheme*
 
@@ -256,11 +245,11 @@ When the request parameter `include_severity=true` is set, a heuristic severity 
 | 3 | 26–50 | Severe — urgent management required |
 | 4 | > 50 | Very Severe — critical crop damage |
 
-This heuristic approach provides a practical, low-cost severity approximation pending integration of pixel-annotated mask data and dedicated lesion segmentation models.
+This heuristic approach provides a practical, low-cost severity approximation pending the development of a dedicated pixel-level lesion segmentation model.
 
 ### 5.8 System Deployment
 
-The trained model is serialized as a PyTorch state dictionary and loaded by the FastAPI backend at application startup via a lifespan context manager. The backend is served with Uvicorn (ASGI server) and exposes two primary endpoints: `GET /health` for service health checks and `POST /predict` for image-based disease prediction. The React web frontend and React Native mobile application communicate with the backend over HTTP using the Axios library.
+The trained model will be serialized and loaded by a FastAPI backend at application startup. The backend will be served as an ASGI web service and will expose endpoints for health monitoring and image-based disease prediction. The web frontend and mobile application will communicate with the backend over HTTP, submitting leaf images as multipart form data and receiving structured JSON responses containing the predicted class, confidence scores, optional heatmap visualization, and optional severity estimate.
 
 ---
 
@@ -268,317 +257,239 @@ The trained model is serialized as a PyTorch state dictionary and loaded by the 
 
 ### 6.1 Overall System Architecture
 
-The system implements a client–server architecture with three distinct client interfaces: a React TypeScript web application, a React Native mobile application, and a command-line evaluation interface. All clients communicate with a single FastAPI backend over a JSON/HTTP REST protocol.
+The proposed system will implement a client–server architecture with three distinct client interfaces: a React TypeScript web application, a React Native mobile application, and a command-line evaluation interface. All clients will communicate with a single FastAPI backend over a REST protocol.
 
-> **Figure 3.** *High-level system architecture diagram illustrating the FastAPI backend, React web frontend, and React Native mobile application. Dashed arrows denote multipart/form-data image upload requests; solid arrows denote JSON prediction response paths.* [Figure placeholder]
+> **Figure 3.** *High-level system architecture diagram illustrating the FastAPI backend, React web frontend, and React Native mobile application, with data flow arrows indicating image upload and JSON prediction response paths.* [Figure placeholder]
 
 ### 6.2 Backend — FastAPI and PyTorch
 
-The backend is implemented in Python using FastAPI, providing a RESTful API with automatic OpenAPI/Swagger documentation at `/docs`, CORS middleware for cross-origin requests, and asynchronous request handling via Python `asyncio`.
+The backend will be implemented in Python using the FastAPI framework, providing a RESTful API with automatic interactive documentation, CORS support for cross-origin requests, and asynchronous request handling. The key functional components of the backend will include:
 
-**Module responsibilities:**
+- **Disease classifier** — the EfficientNetV2-S model that loads pretrained weights at startup, applies preprocessing, runs inference, and returns top-*k* class probabilities with uncertainty flagging.
+- **Grad-CAM engine** — registers gradient hooks on the classifier's final convolutional layer to generate spatial attribution heatmaps on request.
+- **Image preprocessor** — converts uploaded images to normalized tensors conforming to the model's input specification.
+- **Heatmap renderer** — blends the Grad-CAM output with the original image and encodes the result for inclusion in the API response.
+- **Severity estimator** — optionally computes a severity stage from the Grad-CAM heatmap when requested.
+- **Background remover (planned)** — a placeholder module for future U2-Net–based leaf isolation, currently operating as a pass-through.
 
-| Module | Responsibility |
-|---|---|
-| `app/main.py` | Lifespan model loading, route definitions, request dispatching |
-| `app/models/classifier.py` | EfficientNetV2-S model, weight loading, softmax inference, top-*k* ranking, uncertainty thresholding |
-| `app/models/u2net_segmenter.py` | U2-Net background removal placeholder (pass-through pending weight integration) |
-| `app/utils/grad_cam.py` | Hook registration, CAM computation, heatmap generation |
-| `app/utils/image_preprocess.py` | Preprocessing transforms and batch tensor construction |
-| `app/utils/overlay.py` | Heatmap–image blending and base64 PNG encoding |
-| `app/utils/severity.py` | Heuristic severity computation and stage mapping |
-| `app/schemas.py` | Pydantic `PredictionResponse` model for response validation |
+The API will expose two primary endpoints: a health check endpoint that confirms service availability, and a prediction endpoint that accepts a leaf image and returns the disease classification, confidence scores, and optional heatmap and severity data. Predictions with top-1 confidence below a configurable threshold will be flagged as uncertain, directing users to seek expert consultation.
 
-**API endpoint summary:**
+### 6.3 Web Frontend — React and TypeScript
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/health` | GET | Returns `{"status": "ok"}` for service health monitoring |
-| `/predict` | POST | Accepts leaf image; returns classification, confidence, top-*k* probabilities, optional heatmap, optional severity |
+The web frontend will be a single-page application built with React and TypeScript. Key user-facing capabilities will include:
 
-**`POST /predict` — example response body:**
+- **Image upload and local preview** — users will select an image file and see a browser-side preview before submission.
+- **Asynchronous prediction** — the image will be submitted to the backend and results will be displayed without page refresh.
+- **Results display** — the predicted disease class (in English and Nepali transliteration), confidence percentage, visual confidence bar, top-*k* class breakdown, uncertainty warning, severity stage, and Grad-CAM heatmap overlay.
+- **Bilingual agronomic recommendations** — disease-specific prevention and treatment guidance in Nepali, embedded within the application.
+- **Error handling** — informative user-facing messages for network failures, unsupported file types, and low-confidence predictions.
 
-```json
-{
-  "top_class": "Colletotrichum Blight",
-  "top_probability": 0.87,
-  "top_probability_pct": 87.0,
-  "is_uncertain": false,
-  "confidence_threshold": 0.60,
-  "top_k": [
-    { "class_name": "Colletotrichum Blight", "probability": 0.87, "probability_pct": 87.0 },
-    { "class_name": "Phyllosticta Leaf Spot", "probability": 0.09, "probability_pct": 9.0 },
-    { "class_name": "Healthy",               "probability": 0.04, "probability_pct": 4.0 }
-  ],
-  "heatmap": "<base64-encoded PNG>",
-  "severity_stage": 2,
-  "severity_percent": 18.4,
-  "severity_method": "heuristic"
-}
-```
-
-The `is_uncertain` flag is set to `true` and `top_class` is reported as `"Uncertain"` whenever the top-1 probability falls below the configurable `confidence_threshold` (default: 0.40 in the classifier; overridable per-request and via environment variable). This mechanism prevents false confidence in ambiguous cases.
-
-### 6.3 Web Frontend — React, TypeScript, and Vite
-
-The web frontend is a single-page application (SPA) built with React 19, TypeScript, and Vite. Key user-facing capabilities include:
-
-- **Image upload and local preview** — users select a JPEG, PNG, or WebP file; the browser renders a preview before upload.
-- **Asynchronous prediction** — Axios submits the image as `multipart/form-data` with a 30-second timeout.
-- **Results display** — predicted disease class (English and Nepali), confidence percentage, animated confidence bar, top-*k* breakdown, uncertainty warning banner, severity stage display, and Grad-CAM heatmap overlay.
-- **Bilingual agronomic recommendations** — an embedded advice database (`src/utils/AdviceMap.ts`) indexed by class name provides prevention and treatment guidance in Nepali.
-- **Error handling** — informative messages are displayed for network failures, unsupported file types, missing backend, and low-confidence predictions.
-
-> **Figure 4.** *Web application interface: (a) image upload panel before submission, (b) results panel showing predicted disease class, confidence bar, and Grad-CAM heatmap overlay, (c) Nepali-language agronomic recommendation section.* [Figure placeholder]
+> **Figure 4.** *Web application interface: (a) image upload panel, (b) results panel with disease classification, confidence bar, and Grad-CAM heatmap, (c) Nepali-language agronomic recommendation section.* [Figure placeholder]
 
 ### 6.4 Mobile Application — React Native and Expo
 
-The mobile application is built with React Native, Expo SDK, TypeScript, and React Navigation, targeting both iOS and Android platforms.
+The mobile application will be built with React Native and Expo, targeting both iOS and Android platforms. It will present three main screens:
 
-**Screen architecture:**
+1. **Home Screen** — camera capture and gallery selection options; disease class overview in English and Nepali; image-capture guidance tips.
+2. **Result Screen** — captured or selected leaf image, predicted disease name and confidence score, Grad-CAM heatmap overlay, and link to detailed disease information.
+3. **Disease Information Screen** — comprehensive Nepali-language disease management content including description, symptoms, causes, treatment, prevention, and recommended action timelines.
 
-| Screen | Function |
-|---|---|
-| `HomeScreen` | Camera capture and gallery selection; lists disease classes in English and Nepali; provides image-capture guidance |
-| `ResultScreen` | Displays leaf image, predicted disease name, confidence score and bar, Grad-CAM heatmap overlay, link to detailed info |
-| `DiseaseInfoScreen` | Full Nepali-language disease information including description, symptoms, causes, treatment, prevention, and action timeline |
+The application's disease information database will contain structured Nepali-language content for all three disease classes, specifically designed for cardamom farmers with limited technical literacy.
 
-**Reusable components:** `ImagePreview.tsx`, `DiseaseCard.tsx`, `HeatmapViewer.tsx`, `LoadingSpinner.tsx`.
+> **Figure 5.** *Mobile application screens: (a) Home Screen, (b) Result Screen with diagnosis and heatmap, (c) Disease Information Screen in Nepali.* [Figure placeholder]
 
-The disease information database (`src/data/diseaseInfo.ts`) contains structured Nepali-language content covering all disease classes, specifically designed for cardamom farmers with limited technical literacy.
-
-> **Figure 5.** *Mobile application screens: (a) HomeScreen presenting camera and gallery options with disease class overview, (b) ResultScreen with diagnosis result and Grad-CAM overlay, (c) DiseaseInfoScreen with comprehensive Nepali-language disease management content.* [Figure placeholder]
-
----
-
-## 7. Implementation Details
-
-### 7.1 Technology Stack
-
-**Table 4**
-
-*Technology stack and version specifications*
-
-| Component | Technology | Version |
-|---|---|---|
-| Deep learning framework | PyTorch | ≥ 2.0.0 |
-| Computer vision library | torchvision | ≥ 0.15.0 |
-| Model backbone | EfficientNetV2-S | torchvision pretrained |
-| Image processing | Pillow, OpenCV | ≥ 10.0.0, ≥ 4.8.0 |
-| Numerical computing | NumPy | ≥ 1.24.0 |
-| Background removal | rembg | ≥ 2.0.0 |
-| Backend framework | FastAPI | 0.115.0 |
-| ASGI server | Uvicorn | 0.32.0 |
-| Data validation | Pydantic | 2.10.0 |
-| Web framework | React + TypeScript | 19 + 5.x |
-| Build tool | Vite | 5.x |
-| HTTP client | Axios | 1.x |
-| Mobile framework | React Native + Expo | SDK 51 |
-| Mobile navigation | React Navigation | 6.x |
-| Backend language | Python | 3.9–3.13 |
-| Frontend language | TypeScript | 5.x |
-
-### 7.2 Dataset Preparation Implementation
-
-The `backend/split_dataset.py` script reads images with extensions `.jpg`, `.jpeg`, and `.png` (case-insensitive) from source class folders under `dataset_processed/`, shuffles each class's file list using random seed 42, and copies files into `dataset/{train,val,test}/{class}` directories at the configured 70/15/15 ratio. Progress is reported using `tqdm` and per-split class counts are printed for verification.
-
-### 7.3 Model Training Implementation
-
-Training is orchestrated by `backend/train.py`. The script performs pre-flight checks—verifying dataset directory existence, expected split structure, and output directory availability—before loading data with `torchvision.datasets.ImageFolder`. Class weights are computed from training-set class-count statistics and supplied to `torch.nn.CrossEntropyLoss`. The training loop uses `tqdm` progress bars to report per-batch loss and running accuracy. The full implementation of model construction is:
-
-```python
-# From backend/train.py — model construction
-model = models.efficientnet_v2_s(
-    weights=models.EfficientNet_V2_S_Weights.DEFAULT
-)
-num_features = model.classifier[1].in_features  # 1280
-model.classifier = nn.Sequential(
-    nn.Dropout(p=0.3),
-    nn.Linear(num_features, 512),
-    nn.ReLU(),
-    nn.Dropout(p=0.2),
-    nn.Linear(512, Config.NUM_CLASSES)  # NUM_CLASSES = 4 (3 active classes + 1 reserved for Other)
-```
-
-### 7.4 Inference Pipeline Implementation
-
-Upon receiving a `POST /predict` request, the backend executes the following pipeline:
-
-1. Decode the multipart file upload using `io.BytesIO` and `PIL.Image.open()`.
-2. Convert the image to RGB color mode.
-3. Optionally apply the U2-Net segmenter (currently a pass-through placeholder).
-4. Apply the preprocessing chain: Resize(256) → CenterCrop(224) → ToTensor → Normalize.
-5. Pass the tensor through the EfficientNetV2-S classifier; apply softmax to obtain class probabilities.
-6. Extract the top-*k* predictions sorted by descending probability.
-7. Flag as uncertain if top-1 probability < `confidence_threshold`.
-8. Optionally execute a Grad-CAM forward/backward pass; blend heatmap with the original image; encode as base64 PNG.
-9. Optionally compute severity percentage and stage from the Grad-CAM heatmap.
-10. Return the `PredictionResponse` JSON body.
-
-### 7.5 Grad-CAM Implementation
-
-The `GradCAM` class in `app/utils/grad_cam.py` attaches two PyTorch hooks to the last `Conv2d` in `model.features[-1]`:
-
-- **Forward hook** (`_save_activation`) — captures the feature map activations $A^k$.
-- **Backward hook** (`_save_gradient`) — captures gradients $\frac{\partial y^c}{\partial A^k_{ij}}$.
-
-After inference, the heatmap is computed as the ReLU of the weighted sum of feature maps, upsampled to input resolution, normalized to [0, 1], and blended with the original image using the JET colormap at α = 0.4. Hooks are removed immediately after heatmap generation to prevent memory leaks.
-
-### 7.6 Severity Estimation Implementation
-
-`compute_severity_from_heatmap()` in `app/utils/severity.py` accepts the Grad-CAM output as a 2D NumPy array. It normalizes values to [0, 1], binarizes at the `SEVERITY_HEATMAP_THRESHOLD` (default: 0.6), and computes the fraction of "activated" pixels. `map_percent_to_stage()` maps this fraction to one of five severity stages using `SEVERITY_STAGE_THRESHOLDS`. Both parameters are configurable at runtime via environment variables.
-
-### 7.7 Runtime Configuration
+### 6.5 Technology Stack
 
 **Table 5**
 
-*Backend runtime environment variables*
+*Planned technology stack*
 
-| Variable | Default | Description |
-|---|---|---|
-| `MODEL_PATH` | `models/cardamom_model.pt` | Path to trained classifier state dictionary |
-| `U2NET_PATH` | *(none)* | Path to U2-Net weights — optional background removal |
-| `CONFIDENCE_THRESHOLD` | `0.60` | Global top-1 probability threshold for uncertainty flagging |
-| `TOP_K` | `3` | Default number of top-*k* predictions returned |
-| `SEVERITY_HEATMAP_THRESHOLD` | `0.6` | Grad-CAM activation binarization threshold |
-| `SEVERITY_STAGE_THRESHOLDS` | `0,10,25,50,100` | Stage boundary percentages (comma-separated) |
+| Layer | Technology |
+|---|---|
+| Deep learning framework | PyTorch |
+| Model backbone | EfficientNetV2-S (ImageNet pretrained) |
+| Image processing | Pillow, OpenCV |
+| Backend framework | FastAPI |
+| ASGI server | Uvicorn |
+| Web framework | React with TypeScript |
+| HTTP client | Axios |
+| Mobile framework | React Native with Expo |
+| Mobile navigation | React Navigation |
+| Backend language | Python |
+| Frontend language | TypeScript |
 
 ---
 
-## 8. Testing and Evaluation
+## 7. Evaluation Plan
 
-### 8.1 Unit and Integration Testing
+### 7.1 Unit and Integration Testing
 
-The backend test suite resides in `backend/tests/` and is executed with `pytest`. It comprises three modules:
+The backend will be validated through an automated test suite executed using a standard Python testing framework. Tests will cover three areas:
 
-1. **`test_classifier.py`** — tests the `DiseaseClassifier` class with mocked model logits. Verifies: (a) top-*k* output list length and descending probability order, (b) correct class name assignment from logit ordering, (c) uncertainty flag activation when top-1 probability is below threshold, and (d) correct boundary behavior at the confidence threshold.
+1. **Classifier tests** — verify that the model produces top-*k* outputs in the correct format and descending probability order, assigns class names correctly, and flags predictions as uncertain when confidence falls below the threshold.
+2. **Severity utility tests** — verify severity stage mapping boundary conditions for all five stages, and validate computed severity percentages against synthetic heatmaps with known pixel distributions.
+3. **API integration tests** — verify that the health endpoint returns a valid status response, the prediction endpoint accepts standard image formats and returns well-formed JSON responses, and invalid file types are rejected with an appropriate error code.
 
-2. **`test_severity.py`** — tests severity computation utilities. Verifies: (a) `map_percent_to_stage()` boundary conditions for all five severity stages, (b) `compute_severity_from_heatmap()` with synthetic heatmaps of known activated-pixel proportions, and (c) correct behavior under custom threshold configurations.
+### 7.2 Model Evaluation
 
-3. **`test_api.py`** — integration tests using Starlette's `TestClient`. Verifies: (a) `GET /health` returns `{"status": "ok"}`, (b) `POST /predict` with valid JPEG/PNG images returns well-formed responses conforming to the `PredictionResponse` schema, and (c) `POST /predict` with invalid file types returns HTTP 400.
-
-Tests are executed with:
-
-```bash
-cd backend && python -m pytest tests/ -v
-```
-
-### 8.2 Model Evaluation
-
-Model performance on the held-out test partition (260 images) is assessed using `backend/evaluate.py`, which generates:
+Model performance will be assessed on the held-out test partition of 260 images, generating the following metrics:
 
 - **Overall accuracy** — proportion of correctly classified test images.
-- **Per-class precision, recall, and F1-score** — derived from the confusion matrix for each class.
-- **Confusion matrix** — visualized as `confusion_matrix.png`.
-- **Per-class metrics bar chart** — saved as `per_class_metrics.png`.
+- **Per-class precision, recall, and F1-score** — derived from the confusion matrix for each of the three disease classes.
+- **Confusion matrix** — visualizing the distribution of predicted versus true labels.
+- **Per-class metrics bar chart** — illustrating comparative precision, recall, and F1-score across classes.
 
-### 8.3 Frontend Build and End-to-End Testing
+### 7.3 End-to-End Validation
 
-The frontend build is validated with:
+End-to-end system validation will be performed by starting the backend and frontend services, uploading representative test images from each disease class, and verifying that predictions, confidence values, Grad-CAM heatmap rendering, and Nepali-language recommendations display correctly. Error conditions to be tested include: service unavailability, unsupported file types, and non-cardamom image submission.
 
-```bash
-cd frontend && npm run lint && npm run build
-```
-
-End-to-end validation is performed by:
-
-1. Launching the backend: `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
-2. Launching the frontend development server: `npm run dev`
-3. Uploading test images from each disease class and verifying that predictions, confidence values, Grad-CAM heatmap rendering, and Nepali-language recommendations display correctly.
-4. Testing error conditions: missing backend service, unsupported file type, non-leaf image submission.
-
-### 8.4 Evaluation Criteria
-
-The primary acceptance criterion is overall classification accuracy on the test set, with a target of ≥ 85% based on comparable EfficientNetV2-S transfer learning results in the plant disease detection literature (Atila et al., 2021; Ferentinos, 2018). If the initial trained model falls below this threshold, contingency actions include: (a) extending the training budget by increasing maximum epochs or relaxing the early stopping patience; (b) introducing additional augmentation strategies (e.g., MixUp, random erasing); (c) collecting additional images for the minority Colletotrichum Blight class; and (d) re-evaluating the learning rate schedule. A minimum acceptable per-class F1-score of 0.70 is set for all three active classes. Secondary criteria are mean API inference latency (target: < 1 second per image on CPU) and full automated test suite pass rate.
-
----
-
-## 9. Results and Discussion
-
-### 9.1 Training Dynamics
-
-The EfficientNetV2-S model was fine-tuned from ImageNet-pretrained weights using the configuration specified in Section 5.5. Training converged within the 50-epoch budget under the early stopping criterion, with the learning rate scheduler reducing the initial value of 0.001 progressively as validation loss plateaued.
-
-> **Figure 6.** *Training and validation loss (left) and accuracy (right) curves across epochs, illustrating convergence, learning rate reduction events, and the epoch at which early stopping was triggered. Refer to* `training_history.png` *for the actual training output.* [Figure placeholder]
-
-The class-weighted cross-entropy formulation improved recall for the minority Colletotrichum Blight class relative to an unweighted baseline, demonstrating the practical importance of loss weighting for imbalanced agricultural datasets.
-
-### 9.2 Classification Performance
-
-The trained model was evaluated on the 260-image test set. Table 6 presents the per-class classification metrics. Numeric values are to be populated from the output of `evaluate.py` following full model training; the support column reflects the actual test-set class distribution.
+### 7.4 Acceptance Criteria
 
 **Table 6**
 
-*Per-class classification metrics on the held-out test set (n = 260)*
+*Evaluation acceptance criteria*
+
+| Criterion | Target | Contingency if Not Met |
+|---|---|---|
+| Overall classification accuracy | ≥ 85% | Extend training budget; increase augmentation variety; collect additional minority-class images |
+| Per-class F1-score (all classes) | ≥ 0.70 | Apply targeted oversampling for underperforming class |
+| Mean API inference latency (CPU) | < 1 second per image | Optimize preprocessing pipeline; evaluate model quantization |
+| Automated test suite | 100% pass rate | Debug and fix failing tests before final submission |
+| Grad-CAM lesion focus rate | ≥ 80% of correct predictions | Adjust target layer selection; review training convergence |
+
+---
+
+## 8. Expected Outcomes
+
+### 8.1 Training Dynamics
+
+It is anticipated that the EfficientNetV2-S model will converge within the 50-epoch training budget, with the learning rate scheduler progressively reducing the learning rate as validation loss plateaus. The class-weighted cross-entropy loss is expected to improve recall for the minority Colletotrichum Blight class relative to an unweighted baseline, reflecting the practical importance of loss weighting for imbalanced agricultural datasets.
+
+> **Figure 6.** *Anticipated training and validation loss and accuracy curves across epochs, illustrating convergence and the effect of learning rate reduction events.* [Figure placeholder]
+
+### 8.2 Classification Performance
+
+Based on comparable EfficientNetV2-S transfer learning results in the plant disease detection literature (Atila et al., 2021; Ferentinos, 2018), the proposed model is expected to achieve an overall accuracy of at least 85% on the 260-image test set. Table 7 presents the planned evaluation structure for reporting per-class performance.
+
+**Table 7**
+
+*Planned classification metrics table (to be populated after training)*
 
 | Class | Precision | Recall | F1-Score | Support |
 |---|---|---|---|---|
-| Colletotrichum Blight | *TBD* | *TBD* | *TBD* | 42 |
-| Phyllosticta Leaf Spot | *TBD* | *TBD* | *TBD* | 100 |
-| Healthy | *TBD* | *TBD* | *TBD* | 118 |
-| **Overall Accuracy** | — | — | ***TBD*** | **260** |
+| Colletotrichum Blight | — | — | — | 42 |
+| Phyllosticta Leaf Spot | — | — | — | 100 |
+| Healthy | — | — | — | 118 |
+| **Overall Accuracy** | — | — | — | **260** |
 
-*Note.* TBD values are to be populated from `evaluate.py` output following training completion. Target overall accuracy: ≥ 85%, consistent with Atila et al. (2021) and Ferentinos (2018) for EfficientNet-family models on similar-scale plant disease datasets.
+*Note.* All metric values will be computed following model training using the evaluation script on the held-out test set. Target overall accuracy is ≥ 85%.
 
-> **Figure 7.** *Confusion matrix on the held-out test set, visualizing the distribution of predicted versus true disease class labels. Refer to* `confusion_matrix.png` *for the actual evaluation output.* [Figure placeholder]
+> **Figure 7.** *Planned confusion matrix visualization on the held-out test set.* [Figure placeholder]
 
-> **Figure 8.** *Bar chart of per-class precision, recall, and F1-score. Refer to* `per_class_metrics.png` *for the actual evaluation output.* [Figure placeholder]
+> **Figure 8.** *Planned per-class precision, recall, and F1-score bar chart.* [Figure placeholder]
 
-### 9.3 Grad-CAM Visualization Quality
+### 8.3 Grad-CAM Visualization Quality
 
-Qualitative examination of Grad-CAM heatmaps confirmed that the model's attention is concentrated on pathologically significant regions of the leaf—specifically, lesion areas and spot formations—rather than background elements, leaf margins, or image artifacts. This spatial alignment with visible disease symptoms supports the clinical credibility of the diagnostic outputs.
+Grad-CAM heatmaps are expected to concentrate attention on pathologically significant regions of the leaf—specifically lesion areas and spot formations—rather than background elements or leaf margins. This spatial alignment with visible disease symptoms will be qualitatively assessed against agronomic expertise to confirm the clinical credibility of the diagnostic outputs.
 
-> **Figure 9.** *Representative Grad-CAM heatmap examples for (a) Colletotrichum Blight, (b) Phyllosticta Leaf Spot, and (c) Healthy leaves, overlaid on original images using the JET colormap at α = 0.4. Warmer colors indicate regions of higher activation.* [Figure placeholder]
+> **Figure 9.** *Planned Grad-CAM heatmap examples for (a) Colletotrichum Blight, (b) Phyllosticta Leaf Spot, and (c) Healthy leaves, overlaid on original images using a false-color scheme.* [Figure placeholder]
 
-### 9.4 Severity Estimation Validation
+### 8.4 Severity Estimation
 
-The heuristic severity estimation module was qualitatively validated against visual inspection of test set images. The approach tends to modestly overestimate severity in cases where Grad-CAM activation extends beyond visible lesion boundaries—a known limitation of Grad-CAM, which highlights discriminative rather than strictly lesion-bounded regions. This limitation is communicated to users via a disclaimer message returned alongside severity predictions in the API response.
+The heuristic severity module is expected to provide practically useful severity stage estimates for most disease images. The approach may modestly overestimate severity in cases where Grad-CAM activation extends beyond visible lesion boundaries—a known limitation of gradient-based methods, which highlight discriminative rather than strictly lesion-bounded regions. This limitation will be communicated to users through a disclaimer alongside severity outputs. Future work will address this through dedicated lesion segmentation models.
 
-### 9.5 System Latency
+### 8.5 System Performance
 
-The backend API achieved a mean inference latency below one second per request on standard CPU hardware (Intel Core i5, 16 GB RAM) for images at standard capture resolution (up to 4K), satisfying the practical usability requirement for field deployment on non-GPU devices. With GPU acceleration, inference latency is expected to be under 200 ms.
+The system is expected to achieve mean inference latency below one second per request on standard CPU hardware, satisfying the practical usability requirement for field deployment without GPU acceleration. With GPU acceleration, inference latency is expected to fall below 200 ms.
 
-### 9.6 Discussion
+### 8.6 Anticipated Impact
 
-The results demonstrate that transfer learning from ImageNet-pretrained EfficientNetV2-S weights yields a high-performing cardamom leaf disease classifier from a dataset of 1,724 images—a scale substantially smaller than those used in canonical plant disease benchmarks. The training regularization strategy—combining class-weighted loss, stochastic data augmentation, learning rate scheduling, and early stopping—effectively mitigated dataset imbalance and overfitting.
-
-The full-stack deployment architecture, encompassing a web interface and a bilingual mobile application, addresses a practical gap that persists in most published plant disease detection systems: the absence of local-language interfaces and designs suited to low-bandwidth rural environments. The Nepali-language disease information and agronomic recommendations embedded in the mobile application empower farmers to act on diagnostic outputs without dependence on specialist intermediaries.
-
-The uncertainty-flagging mechanism constitutes a critical safety feature. By explicitly signaling predictions below the configurable confidence threshold as "Uncertain" and directing users to seek expert consultation in ambiguous cases, the system avoids the potentially costly consequence of acting on an unreliable diagnosis.
+Transfer learning from ImageNet-pretrained EfficientNetV2-S weights is anticipated to yield a high-performing cardamom leaf disease classifier even from a relatively modest dataset of 1,723 images. The bilingual web and mobile interfaces are expected to address a critical gap in existing agricultural AI tools—the absence of local-language designs suited to rural environments with limited connectivity. The uncertainty-flagging mechanism will provide an important safety feature by directing users to seek expert consultation when the model's confidence is insufficient.
 
 ---
 
-## 10. Conclusion and Future Work
+## 9. Project Timeline
 
-### 10.1 Conclusion
+**Table 8**
 
-This project has successfully designed, implemented, and evaluated a full-stack intelligent system for automated cardamom leaf disease detection. The system integrates a fine-tuned EfficientNetV2-S classifier, Grad-CAM spatial explainability, heuristic severity estimation, a FastAPI RESTful backend, a responsive React TypeScript web interface, and a bilingual React Native mobile application. The codebase is modularly structured, thoroughly tested with an automated pytest suite, and extensively documented to support reproducibility and future development.
+*Planned project timeline by phase*
 
-The system satisfies the three principal prerequisites for effective agricultural AI adoption in rural Nepal: classification accuracy, model interpretability, and linguistic accessibility. By enabling farmers and extension officers to obtain rapid, explainable disease diagnoses from a smartphone photograph—in the Nepali language—the system is positioned to support earlier, more targeted interventions that can measurably reduce disease-related yield losses in Nepal's cardamom sector.
+| Phase | Activity | Duration | Milestone |
+|---|---|---|---|
+| 1 | Dataset collection, cleaning, and class labelling | Weeks 1–3 | Labelled dataset of ≥ 1,700 images ready |
+| 2 | Dataset splitting, augmentation pipeline development, and preprocessing verification | Weeks 3–5 | Train/val/test split confirmed; augmented samples validated |
+| 3 | EfficientNetV2-S model configuration, transfer learning setup, and initial training runs | Weeks 5–8 | Baseline model with > 70% validation accuracy |
+| 4 | Hyperparameter tuning, class weighting, early stopping, and final model training | Weeks 8–10 | Model meets ≥ 85% test accuracy target |
+| 5 | Grad-CAM and severity module integration; qualitative heatmap validation | Weeks 9–11 | Heatmaps confirmed to highlight lesion regions |
+| 6 | FastAPI backend development and automated unit/integration test suite | Weeks 10–12 | All API tests passing; latency < 1 s on CPU |
+| 7 | React TypeScript web frontend development and end-to-end testing | Weeks 11–13 | Web interface fully functional with bilingual output |
+| 8 | React Native mobile application development and device testing | Weeks 12–14 | Mobile app functional on Android and iOS simulators |
+| 9 | System integration, full evaluation on test set, and performance benchmarking | Weeks 14–15 | Final evaluation metrics documented |
+| 10 | Report writing, documentation, and final submission | Weeks 15–16 | Complete proposal and documentation submitted |
 
-### 10.2 Future Work
-
-The following directions are identified for future development and research:
-
-1. **Dataset expansion and crowd-sourcing.** The model's robustness and generalizability would benefit from a larger dataset collected across multiple geographic locations, seasons, and cultivation systems. The mobile application could serve as a crowd-sourcing platform for farmer-submitted, GPS-tagged images.
-
-2. **U2-Net background removal integration.** The U2-Net segmenter (`app/models/u2net_segmenter.py`) is currently a pass-through placeholder. Integrating trained U2-Net weights would enable isolation of the leaf region from complex field backgrounds, potentially improving classification accuracy in high-clutter conditions.
-
-3. **Segmentation-based severity quantification.** The heuristic severity estimation should be superseded by a pixel-level leaf lesion segmentation model (e.g., U-Net or Mask R-CNN trained on annotated mask data) to provide clinically validated severity measurements.
-
-4. **On-device mobile inference.** Exporting the trained model to TensorFlow Lite or ONNX Runtime would enable offline diagnosis directly on the mobile device—critical for areas with limited internet connectivity.
-
-5. **Multi-crop expansion.** The architecture is directly extensible to other economically important Nepali crops (e.g., ginger, turmeric, tea) through retraining with appropriately labelled datasets.
-
-6. **Longitudinal disease monitoring.** GPS tagging and timestamped image storage would enable tracking of disease progression and spatial spread across a plantation over time, supporting farm-level epidemiological analysis.
-
-7. **Integration with agricultural advisory platforms.** Connecting diagnosis outputs to regional extension services or government agricultural portals would facilitate coordinated responses to disease outbreaks at scale.
-
-8. **Multilingual expansion.** Extending the interface to additional languages—including Bangla, Limbu, and Rai—would broaden accessibility among cardamom-farming communities across the broader region.
+*Note.* Phases 3–8 overlap partially to allow iterative integration. The timeline assumes approximately 16 weeks of project execution.
 
 ---
 
-## 11. References
+## 10. Risk Assessment
+
+**Table 9**
+
+*Project risk register*
+
+| Risk | Category | Likelihood | Impact | Mitigation Strategy |
+|---|---|---|---|---|
+| Insufficient labelled images for minority disease class (Colletotrichum Blight) | Dataset | Medium | High | Apply inverse-frequency class weighting; collect additional blight images during Phases 1–3 |
+| Model overfitting due to limited dataset size | Technical | Medium | High | Apply stochastic augmentation, dropout regularization, early stopping, and learning rate scheduling |
+| Domain gap: model performs well on training images but poorly on real-field captures | Technical | Medium | High | Collect images under varied field conditions; test on external image set |
+| Grad-CAM heatmaps highlighting background rather than lesion regions | Technical | Low | Medium | Conduct agronomic review; adjust target layer; retrain if necessary |
+| Backend inference latency exceeds one second on target CPU hardware | Performance | Low | Medium | Profile and optimize preprocessing; evaluate model quantization or pruning |
+| Poor network connectivity in target cardamom-farming communities | Deployment | High | Medium | Design frontend for low-bandwidth operation; plan future offline mobile inference using TensorFlow Lite or ONNX |
+| Difficulty obtaining farmer feedback for user-acceptance validation | Social | Medium | Medium | Coordinate with local agricultural extension officers; use bilingual interface from day one |
+| Extended training time delaying project schedule | Operational | Low | Low | Begin training early; monitor convergence; use cloud GPU if local hardware is insufficient |
+| Dataset collection access restrictions in remote farming regions | Operational | Low | High | Establish partnerships with local agricultural organizations before fieldwork begins |
+
+---
+
+## 11. Ethical Considerations
+
+### 11.1 Data Privacy and Informed Consent
+
+Images collected from cardamom plantations may inadvertently capture farm locations, infrastructure, or the identities of farmers. To address this, all data collection will follow informed consent procedures: participating farmers and landowners will be briefed on the purpose of the project and how images will be used, and they will be given the option to withdraw consent at any time. Location metadata will be stripped from images before storage or model training, unless explicitly authorized and necessary for future longitudinal studies.
+
+### 11.2 Accuracy, Liability, and User Safety
+
+An AI-powered disease diagnosis system carries inherent risks when users act on its outputs. A false-negative prediction (healthy classification of a diseased leaf) could delay treatment and exacerbate crop damage, while a false-positive could lead to unnecessary fungicide application. To mitigate this, the system will:
+
+- Display explicit uncertainty warnings whenever model confidence falls below the configured threshold, prompting users to consult an agronomist.
+- Include on-screen disclaimers that the system is a decision-support tool and not a replacement for professional agricultural expertise.
+- Report top-*k* class probabilities to enable users to judge prediction certainty for themselves.
+
+### 11.3 Environmental Responsibility
+
+Agronomic advice provided through the application—particularly fungicide application recommendations—will be framed to encourage targeted, minimum-necessary interventions rather than blanket prophylactic treatments. This aligns with integrated pest management principles and reduces unnecessary chemical use, supporting environmental sustainability in cardamom farming ecosystems.
+
+### 11.4 Linguistic Inclusivity and Digital Equity
+
+By providing a bilingual interface in both English and Nepali, the system will be more accessible to the farmers who stand to benefit most from it. However, it is acknowledged that farmers in remote communities may face additional barriers including limited smartphone access, low digital literacy, and unreliable network connectivity. Future development should address these through offline capability, simplified user interaction, and community training programs conducted in partnership with agricultural extension services.
+
+### 11.5 Intellectual Property and Open-Source Contributions
+
+The dataset of cardamom leaf images collected for this project will be documented for potential future sharing under an appropriate open data license, subject to the consent of contributing farmers. The software codebase will be structured to be publicly reproducible, supporting the broader open-science objectives of agricultural AI research.
+
+---
+
+## 12. Conclusion
+
+This proposal has outlined the design and planned implementation of a full-stack intelligent system for automated cardamom leaf disease detection, combining a fine-tuned EfficientNetV2-S deep learning classifier with a FastAPI RESTful backend, a React TypeScript web interface, and a bilingual React Native mobile application. The system will incorporate Grad-CAM spatial explainability, heuristic severity estimation, and a safety-oriented uncertainty-flagging mechanism to ensure reliable and interpretable outputs.
+
+The project directly addresses three interconnected barriers to effective disease management in Nepal's cardamom sector: limited access to plant pathology expertise, the visual ambiguity of early-stage fungal lesions, and the absence of linguistically accessible diagnostic tools for smallholder farmers. By enabling rapid, explainable, Nepali-language disease diagnosis from a smartphone photograph, the proposed system has the potential to reduce disease-related yield losses through earlier and more targeted interventions.
+
+The modular architecture, comprehensive evaluation plan, structured risk assessment, and ethical framework presented in this proposal demonstrate the feasibility and rigor of the approach. The project is expected to produce a fully functional and field-deployable system within the 16-week timeline, achieving at least 85% classification accuracy and sub-second inference latency. Future work will focus on expanding the dataset through crowd-sourcing, integrating background removal, developing pixel-level severity quantification, enabling offline mobile inference, and extending the system to additional Nepali crop species.
+
+---
+
+## 13. References
 
 Atila, Ü., Uçar, M., Akyol, K., & Uçar, E. (2021). Plant leaf disease classification using EfficientNet deep learning model. *Ecological Informatics*, *61*, 101182. https://doi.org/10.1016/j.ecoinf.2020.101182
 
@@ -618,4 +529,4 @@ Thapa, R., Zhang, K., Snavely, N., Belongie, S., & Khan, A. (2020). The plant pa
 
 *This proposal was prepared in accordance with APA 7th edition (American Psychological Association, 2020) formatting and citation guidelines for student papers.*
 
-*Estimated body word count (excluding tables, code blocks, figure captions, and references): approximately 6,200 words.*
+*Estimated body word count (excluding tables, figure captions, and references): approximately 5,400 words.*
