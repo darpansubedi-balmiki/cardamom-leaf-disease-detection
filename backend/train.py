@@ -56,7 +56,7 @@ class Config:
     BATCH_SIZE = 32
     NUM_EPOCHS = 50
     LEARNING_RATE = 0.001
-    NUM_CLASSES = 3
+    NUM_CLASSES = 4
     IMG_SIZE = 224
     
     # Device
@@ -66,7 +66,7 @@ class Config:
     PATIENCE = 10
     
     # Class names
-    CLASS_NAMES = ["colletotrichum_blight", "phyllosticta_leaf_spot", "healthy"]
+    CLASS_NAMES = ["colletotrichum_blight", "healthy", "other", "phyllosticta_leaf_spot"]
 
 
 def get_data_transforms():
