@@ -303,7 +303,7 @@ async def predict(
         raise HTTPException(
             status_code=400,
             detail=(
-                "The uploaded image does not appear to be a cardamom leaf. "
+                "Uncertain with the uploaded image. It may not be a cardamom leaf or is too unclear to classify. "
                 "Please upload a clear photo of a cardamom leaf."
             ),
         )

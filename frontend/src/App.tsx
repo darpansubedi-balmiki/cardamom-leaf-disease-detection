@@ -108,7 +108,7 @@ export default function App() {
             </span>
           )}
         </div>
-        <div className={`grid gap-8 mb-8 ${result ? "grid-cols-2" : "grid-cols-1"}`}>
+        <div className={`grid gap-8 mb-8`}>
           {/* Preview */}
           {(!result && previewUrl) && (
             <div className="text-center">
