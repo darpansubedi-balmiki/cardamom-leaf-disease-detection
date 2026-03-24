@@ -43,7 +43,7 @@ CLASS_NAMES: list[str] = [
     "Phyllosticta Leaf Spot",
 ]
 
-DEFAULT_CONFIDENCE_THRESHOLD: float = 0.60
+DEFAULT_CONFIDENCE_THRESHOLD: float = 0.40
 DEFAULT_TOP_K: int = 3
 
 _IMAGENET_MEAN = [0.485, 0.456, 0.406]

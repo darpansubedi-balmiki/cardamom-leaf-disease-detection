@@ -74,7 +74,11 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
     u2net_path = os.environ.get("U2NET_PATH")
 
     _segmenter = U2NetSegmenter(model_path=u2net_path)
-    print("  ℹ️   U2-Net background removal: placeholder (disabled)")
+    from .models.u2net_segmenter import _REMBG_AVAILABLE
+    if _REMBG_AVAILABLE:
+        print("  ✓   U2-Net background removal: enabled (rembg)")
+    else:
+        print("  ℹ️   U2-Net background removal: disabled (rembg not installed)")
 
     confidence_threshold = float(
         os.environ.get("CONFIDENCE_THRESHOLD", DEFAULT_CONFIDENCE_THRESHOLD)
