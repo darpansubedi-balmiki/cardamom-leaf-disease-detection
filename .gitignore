@@ -11,6 +11,7 @@ venv/
 .env
 *.pth
 models/
+dataset/
 
 # Pytest
 .pytest_cache/
