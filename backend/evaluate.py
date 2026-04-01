@@ -19,7 +19,7 @@ class Config:
     MODEL_PATH = "models/cardamom_model.pt"
 
     BATCH_SIZE = 32
-    NUM_CLASSES = 3
+    NUM_CLASSES = 4
     IMG_SIZE = 224
 
     DEVICE = torch.device(

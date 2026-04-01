@@ -1,9 +1,22 @@
 # Cardamom Leaf Disease Detection System
 
-A complete full-stack and mobile application system for detecting diseases in cardamom leaves using deep learning. The system classifies leaf images into three categories:
+A full-stack, bilingual, explainable deep-learning system for detecting
+diseases in cardamom leaves.  The system classifies leaf images into four
+categories:
 - **Colletotrichum Blight** (कोलेटोट्रिकम ब्लाइट)
 - **Phyllosticta Leaf Spot** (फाइलोस्टिक्टा पात दाग)
 - **Healthy** (स्वस्थ)
+- **Other** (अन्य – non-cardamom or unclear images)
+
+> **Thesis project** — This system implements a cardamom leaf disease
+> detection pipeline inspired by the IEEE Access paper *Cardamom Plant Disease
+> Detection Approach Using EfficientNetV2* by Sunil C. K., Jaidhar C. D., and
+> Nagamma Patil (2022).  The method uses background removal (rembg / U²-Net)
+> and EfficientNetV2 classification, and extends the original work with
+> explainability (Grad-CAM), bilingual deployment (English/Nepali), 5-fold
+> cross-validation, ablation studies, error analysis, and robustness tests.
+> See [`docs/thesis_scope.md`](docs/thesis_scope.md) for the full list of
+> original contributions.
 
 ---
 
@@ -59,21 +72,41 @@ python train.py
 
 - **Deep Learning Classification**: PyTorch-based EfficientNetV2 model for disease detection
 - **Grad-CAM Visualization**: Visual explanation showing which leaf regions influenced predictions
-- **Background Removal**: U2-Net integration (placeholder ready)
+- **Background Removal**: rembg (U²-Net ONNX) for leaf isolation before classification
 - **Modern Web Interface**: React TypeScript frontend with responsive design
 - **📱 Mobile App**: React Native app with camera integration and Nepali language support
 - **Real-time Predictions**: Fast inference with confidence scores
 - **RESTful API**: FastAPI backend with automatic documentation
 - **Bilingual Support**: English and Nepali (नेपाली) interface
+- **Severity Estimation**: Heatmap-based disease severity grading
+- **Uncertainty Flagging**: Predictions below confidence threshold flagged as "Uncertain"
+
+## 🔬 Thesis Research Pipeline
+
+The following scripts implement the thesis-grade evaluation experiments.
+All scripts are in `backend/` and require a trained model (`models/cardamom_model.pt`).
+
+| Script | Purpose | Output |
+|---|---|---|
+| `train.py` | Train EfficientNetV2-S with class weighting + augmentation | `models/cardamom_model.pt` |
+| `evaluate.py` | Confusion matrix + per-class metrics on test split | stdout + PNG |
+| `cross_validate.py` | 5-fold stratified cross-validation | `cv_results.json` |
+| `ablation_background_removal.py` | Compare raw vs background-removed images | `ablation_results.json` |
+| `error_analysis.py` | Misclassification analysis + confidence distributions | `misclassified.csv`, `error_analysis.json` |
+| `robustness_test.py` | Accuracy under blur, noise, brightness, rotation, crop | `robustness_results.json` |
+
+See [`docs/model_pipeline.md`](docs/model_pipeline.md) for the full
+reproducible pipeline specification and
+[`docs/thesis_scope.md`](docs/thesis_scope.md) for the contribution list.
 
 ## 🏗️ Architecture
 
 ### Backend (FastAPI + PyTorch)
 - **Framework**: FastAPI with CORS support
-- **Model**: EfficientNetV2-S classifier (3 output classes) - **requires training**
-- **Preprocessing**: ImageNet normalization, 224x224 resizing
+- **Model**: EfficientNetV2-S classifier (4 output classes) - **requires training**
+- **Preprocessing**: ImageNet normalization, 224x224 resizing, optional background removal
 - **Visualization**: Grad-CAM heatmap generation
-- **Background Removal**: U2-Net placeholder (ready for integration)
+- **Background Removal**: rembg (U²-Net ONNX backend)
 
 ### Frontend (React + TypeScript + Vite)
 - **Framework**: React 19 with TypeScript
@@ -99,26 +132,35 @@ cardamom-leaf-disease-detection/
 │   │   ├── main.py              # FastAPI entry point
 │   │   ├── schemas.py           # Pydantic models
 │   │   ├── models/
-│   │   │   ├── cardamom_model.py      # CNN classifier
-│   │   │   └── u2net_segmenter.py     # Background removal
+│   │   │   ├── classifier.py          # EfficientNetV2-S inference
+│   │   │   └── u2net_segmenter.py     # Background removal (rembg)
 │   │   └── utils/
 │   │       ├── image_preprocess.py    # Image preprocessing
 │   │       ├── grad_cam.py            # Grad-CAM implementation
-│   │       └── overlay.py             # Heatmap overlay
+│   │       ├── overlay.py             # Heatmap overlay
+│   │       └── severity.py            # Severity estimation
+│   ├── train.py                 # Training with class weighting + augmentation
+│   ├── evaluate.py              # Test-set evaluation (confusion matrix + metrics)
+│   ├── split_dataset.py         # 70/15/15 stratified split
+│   ├── cross_validate.py        # 5-fold cross-validation
+│   ├── ablation_background_removal.py  # Background-removal ablation study
+│   ├── error_analysis.py        # Misclassification analysis
+│   ├── robustness_test.py       # Perturbation robustness tests
 │   ├── models/                  # Trained model weights (gitignored)
 │   ├── requirements.txt
-│   └── README.md
+│   └── tests/                   # Unit tests (pytest)
+│
+├── docs/
+│   ├── model_pipeline.md        # Full reproducible pipeline specification
+│   └── thesis_scope.md          # Thesis contributions and scope
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── main.tsx            # React entry
 │   │   ├── App.tsx             # Main component
-│   │   ├── App.css             # Styles
-│   │   ├── index.css           # Global styles
 │   │   └── api/
 │   │       └── client.ts       # API client
 │   ├── package.json
-│   ├── tsconfig.json
 │   └── vite.config.ts
 │
 ├── cardamom-mobile-app/         # 📱 React Native Mobile App
@@ -131,8 +173,7 @@ cardamom-leaf-disease-detection/
 │   │   ├── types/               # TypeScript types
 │   │   └── utils/               # Helper functions
 │   ├── app.json                 # Expo configuration
-│   ├── package.json
-│   └── README.md
+│   └── package.json
 │
 ├── .gitignore
 └── README.md
