@@ -1,0 +1,43 @@
+{
+  "model": "EfficientNetV2-S",
+  "dataset": "dataset",
+  "classes": [
+    "blight",
+    "healthy",
+    "other",
+    "spot"
+  ],
+  "n_total": 391,
+  "n_correct": 391,
+  "n_wrong": 0,
+  "accuracy": 1.0,
+  "correct_mean_confidence": 0.999745572619426,
+  "wrong_mean_confidence": null,
+  "confusion_matrix": [
+    [
+      90,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      84,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      125,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      92
+    ]
+  ],
+  "top_confusion_pairs": []
+}

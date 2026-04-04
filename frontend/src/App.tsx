@@ -108,7 +108,7 @@ export default function App() {
             </span>
           )}
         </div>
-        <div className={`grid gap-8 mb-8`}>
+        <div className={`grid gap-x-8 mb-8`}>
           {/* Preview */}
           {(!result && previewUrl) && (
             <div className="text-center">
@@ -157,7 +157,7 @@ export default function App() {
         </div>
 
         {/* Action buttons */}
-        <div className="mb-8 flex flex-wrap justify-center gap-4">
+        <div className="mb-8 flex flex-wrap justify-center">
           <button
             onClick={handleAnalyze}
             disabled={!selectedFile || isLoading}
