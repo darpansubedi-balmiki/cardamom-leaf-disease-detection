@@ -232,7 +232,7 @@ Images were captured under natural field lighting using mobile devices at varyin
 | Spot | 92 | ~615 | ~24% |
 | **Total** | **391** | **~2,607** | **100%** |
 
-*Derived from test split counts assuming 15% test proportion (70/15/15 split).
+*Derived from test split counts assuming a nominal 15% test proportion (70/15/15 split); the full dataset size is approximate (~2,607 images).
 
 The dataset was partitioned into training (70%), validation (15%), and test (15%) subsets using stratified random splitting, ensuring that each subset maintained the same class proportions as the full dataset.
 
@@ -281,7 +281,7 @@ To address class imbalance, a class weighting scheme was applied to the cross-en
 
 $$w_c = \frac{N}{K \cdot n_c}$$
 
-where *N* is the total number of training samples, *K* is the number of classes, and *n*_c* is the number of samples in class *c*. This penalises misclassification of minority classes proportionally more than majority classes, improving recall on underrepresented categories.
+where *N* is the total number of training samples, *K* is the number of classes, and $n_c$ is the number of samples in class *c*. This penalises misclassification of minority classes proportionally more than majority classes, improving recall on underrepresented categories.
 
 ### 3.4.4 Optimisation
 
