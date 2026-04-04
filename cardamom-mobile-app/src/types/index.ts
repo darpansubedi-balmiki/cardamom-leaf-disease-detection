@@ -3,9 +3,19 @@
  */
 
 export interface PredictionResponse {
-  class_name: string;
-  confidence: number;
-  heatmap: string; // Base64 encoded PNG
+  // Core classification fields
+  top_class: string;
+  top_probability: number;
+  top_probability_pct: number;
+  is_uncertain: boolean;
+  confidence_threshold: number;
+  top_k: Array<{ class_name: string; probability: number; probability_pct: number }>;
+  // Heatmap and severity fields – present only when include_severity=true was sent
+  heatmap: string | null;
+  severity_stage: number | null;
+  severity_percent: number | null;
+  severity_method: string;
+  warning: string[] | null;
 }
 
 export interface DiseaseInfo {

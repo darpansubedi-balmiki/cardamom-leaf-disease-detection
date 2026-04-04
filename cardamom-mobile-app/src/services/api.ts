@@ -33,7 +33,7 @@ export const healthCheck = async (): Promise<{ status: string }> => {
 /**
  * Send image for disease prediction
  * @param imageUri - Local file URI of the image
- * @returns Prediction response with class name, confidence, and heatmap
+ * @returns Prediction response with classification, severity, heatmap, and advice fields
  */
 export const predictDisease = async (imageUri: string): Promise<PredictionResponse> => {
   try {
@@ -49,6 +49,9 @@ export const predictDisease = async (imageUri: string): Promise<PredictionRespon
       type: 'image/jpeg',
       name: filename,
     } as any);
+
+    // Request severity estimation to match web frontend behaviour
+    formData.append('include_severity', 'true');
 
     const response = await apiClient.post<PredictionResponse>('/predict', formData, {
       headers: {
@@ -66,7 +69,7 @@ export const predictDisease = async (imageUri: string): Promise<PredictionRespon
       throw new Error(`Server error: ${error.response.data.detail || error.response.statusText}`);
     } else if (error.request) {
       // Request made but no response
-      throw new Error('Cannot connect to server. Make sure the backend is running on http://localhost:8000');
+      throw new Error('Cannot connect to server. Make sure the backend is running.');
     } else {
       // Something else happened
       throw new Error(`Error: ${error.message}`);
