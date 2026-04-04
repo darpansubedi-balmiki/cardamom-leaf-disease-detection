@@ -1,6 +1,6 @@
 /**
  * Result Screen
- * Display prediction results with heatmap
+ * Display prediction results identical to the web React frontend.
  */
 import React from 'react';
 import {
@@ -9,17 +9,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types';
-import { ImagePreview } from '../components/ImagePreview';
-import { HeatmapViewer } from '../components/HeatmapViewer';
-import { DiseaseCard } from '../components/DiseaseCard';
 import { getDiseaseInfoByName } from '../data/diseaseInfo';
-import { formatConfidence, getConfidenceColor } from '../utils/imageHelper';
+import { ADVICE_MAP } from '../utils/AdviceMap';
+import { STAGE_LABELS, STAGE_BADGE_COLORS } from '../utils/StageLabel';
 
 type ResultScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Result'>;
 type ResultScreenRouteProp = RouteProp<RootStackParamList, 'Result'>;
@@ -29,11 +27,16 @@ interface ResultScreenProps {
   route: ResultScreenRouteProp;
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route }) => {
   const { imageUri, prediction } = route.params;
-  const diseaseInfo = getDiseaseInfoByName(prediction.class_name);
+  const diseaseInfo = getDiseaseInfoByName(prediction.top_class);
+  const advice = ADVICE_MAP[prediction.top_class];
+
+  const hasSeverity =
+    prediction.severity_stage !== null &&
+    prediction.severity_stage !== undefined &&
+    prediction.severity_percent !== null &&
+    prediction.severity_percent !== undefined;
 
   const handleViewDetails = () => {
     if (diseaseInfo) {
@@ -41,89 +44,203 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
     }
   };
 
+  // Confidence bar color (mirrors web indigo→purple gradient – approximated with solid indigo)
+  const confidenceBarColor = '#667eea';
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>परिणाम</Text>
+        <Text style={styles.headerTitle}>परिणाम / Results</Text>
         <View style={styles.placeholder} />
       </View>
 
-      {/* Original Image */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>तस्बिर (Original Image)</Text>
-        <ImagePreview imageUri={imageUri} />
-      </View>
+      {/* Heatmap (shown when available, mirrors web which shows heatmap after analysis) */}
+      {prediction.heatmap ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Grad-CAM Heatmap</Text>
+          <Text style={styles.sectionSubtitle}>
+            This visualization shows which regions of the leaf influenced the prediction
+          </Text>
+          <Image
+            source={{ uri: `data:image/png;base64,${prediction.heatmap}` }}
+            style={styles.heatmapImage}
+            resizeMode="contain"
+          />
+        </View>
+      ) : (
+        /* Fallback: show original image when heatmap is not available */
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preview</Text>
+          <Image source={{ uri: imageUri }} style={styles.heatmapImage} resizeMode="contain" />
+        </View>
+      )}
 
-      {/* Prediction Result */}
-      <View style={styles.resultCard}>
-        <Text style={styles.resultLabel}>रोगको नाम (Disease)</Text>
-        <Text style={styles.diseaseNameEnglish}>{prediction.class_name}</Text>
-        {diseaseInfo && (
-          <Text style={styles.diseaseNameNepali}>{diseaseInfo.nameNepali}</Text>
+      {/* Results card */}
+      <View style={styles.resultsCard}>
+        <Text style={styles.resultsHeading}>Results</Text>
+
+        {/* API warning banner */}
+        {prediction.warning && prediction.warning.length > 0 && (
+          <View style={styles.warningBanner}>
+            <Text style={styles.warningBannerText}>{prediction.warning.join(' ')}</Text>
+          </View>
         )}
 
-        <View style={styles.confidenceContainer}>
-          <View style={styles.confidenceHeader}>
-            <Text style={styles.confidenceLabel}>विश्वास स्तर (Confidence)</Text>
-            <Text
-              style={[
-                styles.confidenceValue,
-                { color: getConfidenceColor(prediction.confidence) },
-              ]}
-            >
-              {formatConfidence(prediction.confidence)}
+        <View style={styles.resultItems}>
+          {/* Disease class */}
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Disease Class:</Text>
+            <Text style={styles.resultValuePrimary}>
+              {prediction.top_class}
+              {advice ? ` — ${advice.nepaliName}` : ''}
             </Text>
           </View>
-          <View style={styles.confidenceBar}>
+
+          {/* Confidence */}
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Confidence:</Text>
+            <Text style={styles.resultValuePurple}>
+              {prediction.top_probability_pct.toFixed(2)}%
+            </Text>
+          </View>
+
+          {/* Confidence bar */}
+          <View style={styles.confidenceBarTrack}>
             <View
               style={[
-                styles.confidenceFill,
+                styles.confidenceBarFill,
                 {
-                  width: `${prediction.confidence * 100}%`,
-                  backgroundColor: getConfidenceColor(prediction.confidence),
+                  width: `${prediction.top_probability_pct}%`,
+                  backgroundColor: confidenceBarColor,
                 },
               ]}
             />
           </View>
-        </View>
 
-        {prediction.confidence < 0.6 && (
-          <View style={styles.warningBox}>
-            <Ionicons name="warning" size={20} color="#f57c00" />
-            <Text style={styles.warningText}>
-              कम विश्वास स्तर। कृपया स्पष्ट तस्बिरसँग पुन: प्रयास गर्नुहोस्।
-            </Text>
-          </View>
-        )}
+          {/* Uncertainty warning */}
+          {prediction.is_uncertain && (
+            <View style={styles.uncertaintyBox}>
+              <Text style={styles.uncertaintyText}>
+                ⚠️ Low confidence – prediction may be unreliable.
+              </Text>
+            </View>
+          )}
+
+          {/* Severity section (shown for non-Healthy classes only, mirrors web) */}
+          {hasSeverity && prediction.top_class !== 'Healthy' && (
+            <View style={styles.severitySection}>
+              <Text style={styles.severityHeading}>Severity Estimation</Text>
+
+              <View style={styles.resultRow}>
+                <Text style={styles.resultLabel}>Stage:</Text>
+                <View
+                  style={[
+                    styles.stageBadge,
+                    {
+                      backgroundColor:
+                        STAGE_BADGE_COLORS[prediction.severity_stage!]?.bg ?? '#f1f5f9',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.stageBadgeText,
+                      {
+                        color:
+                          STAGE_BADGE_COLORS[prediction.severity_stage!]?.text ?? '#334155',
+                      },
+                    ]}
+                  >
+                    {STAGE_LABELS[prediction.severity_stage!] ??
+                      `Stage ${prediction.severity_stage}`}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.resultRow}>
+                <Text style={styles.resultLabel}>Area Affected:</Text>
+                <Text style={styles.areaAffectedValue}>
+                  {prediction.severity_percent!.toFixed(1)}%
+                </Text>
+              </View>
+
+              {/* Severity bar: green → amber → red */}
+              <View style={styles.severityBarTrack}>
+                <View
+                  style={[
+                    styles.severityBarFill,
+                    { width: `${prediction.severity_percent}%` },
+                  ]}
+                />
+              </View>
+
+              {prediction.severity_method === 'heuristic' && (
+                <View style={styles.heuristicNote}>
+                  <Text style={styles.heuristicText}>
+                    ℹ️ <Text style={{ fontWeight: 'bold' }}>Estimate only.</Text> Severity was
+                    approximated from the Grad-CAM heatmap (heuristic method) and does not reflect
+                    true lesion area. For accurate quantification, use mask-based labelling.
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Recommendations (सुझाव) – mirrors web frontend exactly */}
+          {advice && (
+            <View style={styles.adviceSection}>
+              <Text style={styles.adviceHeading}>सुझाव</Text>
+
+              <View style={styles.adviceBlock}>
+                <Text style={styles.adviceSubHeading}>रोकथाम (Prevention)</Text>
+                {advice.prevention.map((tip, idx) => (
+                  <View key={`prev-${idx}`} style={styles.adviceItem}>
+                    <Text style={styles.bullet}>•</Text>
+                    <Text style={styles.adviceText}>{tip}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.adviceBlock}>
+                <Text style={styles.adviceSubHeading}>
+                  उपचार/व्यवस्थापन (Cure / Management)
+                </Text>
+                {advice.cure.map((tip, idx) => (
+                  <View key={`cure-${idx}`} style={styles.adviceItem}>
+                    <Text style={styles.bullet}>•</Text>
+                    <Text style={styles.adviceText}>{tip}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.adviceDisclaimer}>
+                <Text style={styles.adviceDisclaimerText}>
+                  ℹ️ <Text style={{ fontWeight: 'bold' }}>सूचना: </Text>
+                  यी सुझावहरू सामान्य जानकारीका लागि हुन्। स्थानीय कृषि
+                  प्राविधिक/कृषि कार्यालयको सल्लाह अनुसार मात्र औषधि/छर्काइ
+                  प्रयोग गर्नुहोस्।
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
       </View>
-
-      {/* Heatmap */}
-      <HeatmapViewer heatmapBase64={prediction.heatmap} />
-
-      {/* Disease Information Card */}
-      {diseaseInfo && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>रोग जानकारी</Text>
-          <DiseaseCard disease={diseaseInfo} onPress={handleViewDetails} />
-        </View>
-      )}
 
       {/* Action Buttons */}
       <View style={styles.actionsContainer}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.primaryButton]}
-          onPress={handleViewDetails}
-        >
-          <Ionicons name="information-circle" size={24} color="#fff" />
-          <Text style={styles.actionButtonText}>विस्तृत जानकारी</Text>
-        </TouchableOpacity>
+        {diseaseInfo && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.primaryButton]}
+            onPress={handleViewDetails}
+          >
+            <Ionicons name="information-circle" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>विस्तृत जानकारी</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={[styles.actionButton, styles.secondaryButton]}
@@ -158,7 +275,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -169,82 +286,216 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: '#64748b',
+    fontStyle: 'italic',
+    textAlign: 'center',
     marginBottom: 12,
   },
-  resultCard: {
-    backgroundColor: '#fff',
+  heatmapImage: {
+    width: '100%',
+    height: 300,
+    borderRadius: 12,
+    backgroundColor: '#e2e8f0',
+  },
+  resultsCard: {
     margin: 16,
-    padding: 20,
+    backgroundColor: '#f8fafc',
     borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
+  resultsHeading: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  warningBanner: {
+    backgroundColor: '#fffbeb',
+    borderWidth: 2,
+    borderColor: '#fde68a',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  warningBannerText: {
+    color: '#92400e',
+    fontWeight: '600',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  resultItems: {
+    gap: 8,
+  },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    flexWrap: 'wrap',
+    gap: 4,
+  },
   resultLabel: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
+    fontWeight: '600',
+    color: '#64748b',
   },
-  diseaseNameEnglish: {
-    fontSize: 24,
+  resultValuePrimary: {
+    fontSize: 15,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#4f46e5',
+    flexShrink: 1,
+    textAlign: 'right',
+  },
+  resultValuePurple: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#7c3aed',
+  },
+  confidenceBarTrack: {
+    height: 10,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  confidenceBarFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  uncertaintyBox: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#fbbf24',
+    borderRadius: 8,
+    padding: 12,
+  },
+  uncertaintyText: {
+    color: '#78350f',
+    fontSize: 13,
+  },
+  // ── Severity ──────────────────────────────────────────────────────────────
+  severitySection: {
+    borderTopWidth: 2,
+    borderTopColor: '#e2e8f0',
+    borderStyle: 'dashed',
+    paddingTop: 16,
+    marginTop: 8,
+    gap: 8,
+  },
+  severityHeading: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
     marginBottom: 4,
   },
-  diseaseNameNepali: {
-    fontSize: 20,
+  stageBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  stageBadgeText: {
+    fontSize: 13,
     fontWeight: '600',
-    color: '#667eea',
-    marginBottom: 20,
   },
-  confidenceContainer: {
-    marginTop: 16,
-  },
-  confidenceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  confidenceLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  confidenceValue: {
-    fontSize: 20,
+  areaAffectedValue: {
+    fontSize: 17,
     fontWeight: 'bold',
+    color: '#dc2626',
   },
-  confidenceBar: {
+  severityBarTrack: {
     height: 8,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e2e8f0',
     borderRadius: 4,
     overflow: 'hidden',
   },
-  confidenceFill: {
+  severityBarFill: {
     height: '100%',
     borderRadius: 4,
+    // Approximation of web's emerald→amber→red gradient using a fixed amber-red color
+    backgroundColor: '#f59e0b',
   },
-  warningBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff3e0',
-    padding: 12,
+  heuristicNote: {
+    backgroundColor: '#e0f2fe',
+    borderWidth: 1,
+    borderColor: '#bae6fd',
     borderRadius: 8,
-    marginTop: 16,
+    padding: 12,
   },
-  warningText: {
-    flex: 1,
+  heuristicText: {
     fontSize: 13,
-    color: '#f57c00',
-    marginLeft: 8,
+    color: '#0c4a6e',
+    lineHeight: 20,
   },
-  actionsContainer: {
+  // ── Recommendations ───────────────────────────────────────────────────────
+  adviceSection: {
+    marginTop: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e0e7ff',
+    backgroundColor: 'rgba(238, 242, 255, 0.5)',
     padding: 16,
+    gap: 12,
+  },
+  adviceHeading: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1e293b',
+  },
+  adviceBlock: {
+    gap: 6,
+  },
+  adviceSubHeading: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  adviceItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  bullet: {
+    fontSize: 16,
+    color: '#4f46e5',
+    lineHeight: 22,
+  },
+  adviceText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#334155',
+    lineHeight: 22,
+  },
+  adviceDisclaimer: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    padding: 12,
+  },
+  adviceDisclaimerText: {
+    fontSize: 13,
+    color: '#7f1d1d',
+    lineHeight: 20,
+  },
+  // ── Action buttons ────────────────────────────────────────────────────────
+  actionsContainer: {
+    paddingHorizontal: 16,
     gap: 12,
   },
   actionButton: {
