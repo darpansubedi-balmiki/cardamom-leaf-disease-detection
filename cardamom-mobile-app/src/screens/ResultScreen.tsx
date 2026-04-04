@@ -114,7 +114,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
               style={[
                 styles.confidenceBarFill,
                 {
-                  width: `${prediction.top_probability_pct}%` as any,
+                  width: `${prediction.top_probability_pct}%`,
                   backgroundColor: confidenceBarColor,
                 },
               ]}
@@ -173,7 +173,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
                 <View
                   style={[
                     styles.severityBarFill,
-                    { width: `${prediction.severity_percent}%` as any },
+                    { width: `${prediction.severity_percent}%` },
                   ]}
                 />
               </View>
