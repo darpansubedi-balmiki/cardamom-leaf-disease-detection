@@ -109,7 +109,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
-        <Text style={styles.title}>🌿 अलैंची रोग पहिचान</Text>
+        <Text style={styles.title}>अलैंची रोग पहिचान</Text>
         <Text style={styles.subtitle}>Cardamom Disease Detection</Text>
         <Text style={styles.description}>
           अलैंची बिरुवाको पातको तस्बिर खिच्नुहोस् वा ग्यालेरीबाट छान्नुहोस्
@@ -139,7 +139,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       </View>
 
       <View style={styles.infoSection}>
-        <Text style={styles.infoTitle}>📋 समर्थित रोगहरू:</Text>
+        <Text style={styles.infoTitle}>समर्थित रोगहरू:</Text>
         <View style={styles.diseaseList}>
           <Text style={styles.diseaseItem}>• कोलेटोट्रिकम ब्लाइट (Colletotrichum Blight)</Text>
           <Text style={styles.diseaseItem}>• फाइलोस्टिक्टा पात दाग (Phyllosticta Leaf Spot)</Text>
@@ -148,7 +148,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       </View>
 
       <View style={styles.tipsSection}>
-        <Text style={styles.tipsTitle}>💡 राम्रो नतिजाको लागि:</Text>
+        <Text style={styles.tipsTitle}>राम्रो नतिजाको लागि:</Text>
         <Text style={styles.tip}>• स्पष्ट र फोकसमा रहेको तस्बिर खिच्नुहोस्</Text>
         <Text style={styles.tip}>• राम्रो प्रकाशमा तस्बिर खिच्नुहोस्</Text>
         <Text style={styles.tip}>• पातको नजिकबाट तस्बिर खिच्नुहोस्</Text>
