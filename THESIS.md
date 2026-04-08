@@ -860,7 +860,7 @@ End-to-end latency was measured on a standard development machine (Apple M1, 8 G
 | FastAPI request parsing + response serialisation | ~20 ms | Loopback |
 | **Full API round-trip (loopback)** | **~150 ms** | |
 
-*Measured on Apple M1 CPU. On a typical deployment server (Intel Xeon or equivalent), latency may vary ±30%. Network transfer time (mobile → server) adds approximately 50–200 ms under a 3G/4G connection, giving a total perceived latency of approximately 200–350 ms from tap to result under good connectivity.*
+*Measured on Apple M1 CPU. On a typical deployment server (Intel Xeon or equivalent), server-side latency may vary ±30%, giving a range of approximately 105–195 ms for the full loopback round-trip. Network transfer time (mobile → server) adds approximately 50–200 ms under a 3G/4G connection, giving a total perceived latency of approximately 155–395 ms from tap to result under realistic conditions.*
 
 ### 5.6.3 Latency Implications for Deployment
 
