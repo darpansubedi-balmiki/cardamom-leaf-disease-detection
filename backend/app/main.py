@@ -27,14 +27,13 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional
+from typing import Annotated, AsyncGenerator, List, Optional
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from PIL import Image
 from pydantic import BaseModel, Field
 
@@ -46,7 +45,6 @@ from .models.classifier import (
     PredictionResult,
 )
 from .models.u2net_segmenter import U2NetSegmenter
-from .schemas import PredictionResponse  # not used anymore; keep only if other modules import it
 from .utils.grad_cam import generate_gradcam_heatmap
 from .utils.image_preprocess import preprocess_image
 from .utils.overlay import overlay_and_encode
@@ -495,7 +493,7 @@ async def health() -> HealthResponse:
 @app.post("/predict", response_model=PredictResponse)
 async def predict(
     request: Request,
-    file: UploadFile = File(..., description="Leaf image (JPEG/PNG/WebP)"),
+    file: Annotated[UploadFile, File(description="Leaf image (JPEG/PNG/WebP)")],
     confidence_threshold: float = Form(
         DEFAULT_CONFIDENCE_THRESHOLD,
         ge=0.0,
@@ -594,7 +592,7 @@ async def predict(
 @app.post("/predict/batch", response_model=List[PredictResponse])
 async def predict_batch(
     request: Request,
-    files: List[UploadFile] = File(..., description="Up to 10 leaf images (JPEG/PNG/WebP)"),
+    files: Annotated[List[UploadFile], File(description="Up to 10 leaf images (JPEG/PNG/WebP)")],
     confidence_threshold: float = Form(DEFAULT_CONFIDENCE_THRESHOLD, ge=0.0, le=1.0),
     top_k: int = Form(DEFAULT_TOP_K, ge=1, le=10),
     include_severity: bool = Form(False),
