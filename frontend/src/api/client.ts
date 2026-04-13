@@ -20,12 +20,21 @@ export interface PredictionResponse {
   severity_stage: number | null;
   severity_percent: number | null;
   severity_method: string;
+  // CAM method used ('gradcam' | 'gradcam++' | 'none')
+  cam_method: string;
+  // Model version from model_metadata.json (may be absent)
+  model_version: string | null;
   warning: string[] | null; // Any warnings or notes about the prediction
 }
 
 // Health check response interface
 export interface HealthResponse {
   status: string;
+  model_loaded: boolean;
+  model_classes: string[];
+  device: string;
+  model_version: string | null;
+  model_accuracy: number | null;
 }
 
 /**
@@ -59,11 +68,20 @@ class ApiClient {
    * @param includeSeverity  - When true, the response will include
    *                           severity_stage, severity_percent, severity_method
    *                           and a Grad-CAM heatmap overlay.
+   * @param useTta           - When true, run Test-Time Augmentation on the backend.
+   * @param camMethod        - 'gradcam' (default) or 'gradcam++'.
    */
-  async predict(file: File, includeSeverity = true): Promise<PredictionResponse> {
+  async predict(
+    file: File,
+    includeSeverity = true,
+    useTta = false,
+    camMethod: 'gradcam' | 'gradcam++' = 'gradcam',
+  ): Promise<PredictionResponse> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('include_severity', includeSeverity ? 'true' : 'false');
+    formData.append('use_tta', useTta ? 'true' : 'false');
+    formData.append('cam_method', camMethod);
 
     const response = await this.client.post<PredictionResponse>(
       '/predict',

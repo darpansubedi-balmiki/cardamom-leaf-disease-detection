@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 try:
     from rembg import remove as rembg_remove
     _REMBG_AVAILABLE = True
-except ImportError:
+except (ImportError, SystemExit, Exception):
     _REMBG_AVAILABLE = False
-    logger.warning("rembg not installed – background removal disabled. Run: pip install rembg")
+    logger.warning("rembg not installed or not usable – background removal disabled.")
 
 
 class U2NetSegmenter:
