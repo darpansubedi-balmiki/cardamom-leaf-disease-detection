@@ -42,7 +42,18 @@ from app.utils.severity import (
 
 
 def _make_image_bytes(size: tuple[int, int] = (256, 256)) -> bytes:
-    img = Image.new("RGB", size, (80, 160, 40))
+    """Return JPEG bytes of a synthetic textured image that passes quality checks."""
+    import numpy as _np
+    w, h = size
+    arr = _np.zeros((h, w, 3), dtype=_np.uint8)
+    block = max(16, w // 8)
+    for row in range(h):
+        for col in range(w):
+            if (row // block + col // block) % 2 == 0:
+                arr[row, col] = [80, 160, 40]
+            else:
+                arr[row, col] = [40, 100, 20]
+    img = Image.fromarray(arr, mode="RGB")
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
     return buf.getvalue()

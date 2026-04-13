@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+DEFAULT_USE_TTA: bool = False  # Test-Time Augmentation off by default
 
 CLASS_NAMES: list[str] = [
     "Colletotrichum Blight",
@@ -48,6 +49,15 @@ DEFAULT_TOP_K: int = 3
 
 _IMAGENET_MEAN = [0.485, 0.456, 0.406]
 _IMAGENET_STD = [0.229, 0.224, 0.225]
+
+# TTA augmentation variants (applied on top of the base transform)
+_TTA_AUGMENTS = [
+    transforms.Compose([]),  # identity
+    transforms.RandomHorizontalFlip(p=1.0),
+    transforms.RandomVerticalFlip(p=1.0),
+    transforms.RandomRotation(degrees=(15, 15)),
+    transforms.RandomRotation(degrees=(-15, -15)),
+]
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -72,10 +82,11 @@ class PredictionResult:
 # Preprocessing
 # ---------------------------------------------------------------------------
 
+# Use the same preprocessing pipeline as training (direct Resize to 224×224)
+# so that train/inference transforms are consistent.
 _preprocess = transforms.Compose(
     [
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize(mean=_IMAGENET_MEAN, std=_IMAGENET_STD),
     ]
@@ -156,15 +167,32 @@ class DiseaseClassifier:
     # Public API
     # ------------------------------------------------------------------
 
-    def predict(self, image: Image.Image) -> PredictionResult:
-        """Run inference on a PIL image and return a :class:`PredictionResult`."""
-        tensor = _preprocess(image.convert("RGB")).unsqueeze(0).to(self.device)
+    def predict(self, image: Image.Image, use_tta: bool = False) -> PredictionResult:
+        """Run inference on a PIL image and return a :class:`PredictionResult`.
 
-        with torch.no_grad():
-            logits = self._model(tensor)
-            probs = F.softmax(logits, dim=1).squeeze(0)  # shape: (num_classes,)
+        Args:
+            image:    PIL image to classify.
+            use_tta:  When True, runs Test-Time Augmentation (5 flips/rotations)
+                      and averages the softmax probabilities before deciding the
+                      top class.  Slightly slower but more stable on borderline
+                      inputs.
+        """
+        rgb = image.convert("RGB")
 
-        probs_np: np.ndarray = probs.cpu().numpy()
+        if use_tta:
+            probs_list = []
+            for aug in _TTA_AUGMENTS:
+                augmented = aug(rgb)
+                tensor = _preprocess(augmented).unsqueeze(0).to(self.device)
+                with torch.no_grad():
+                    logits = self._model(tensor)
+                    probs_list.append(F.softmax(logits, dim=1).squeeze(0).cpu().numpy())
+            probs_np: np.ndarray = np.mean(probs_list, axis=0)
+        else:
+            tensor = _preprocess(rgb).unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                logits = self._model(tensor)
+                probs_np = F.softmax(logits, dim=1).squeeze(0).cpu().numpy()
 
         # Top-k indices sorted by descending probability
         top_k_count = min(self.top_k, len(CLASS_NAMES))

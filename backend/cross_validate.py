@@ -219,7 +219,7 @@ def train_fold(
                         num_workers=0, pin_memory=False)
 
     model = create_model().to(DEVICE)
-    criterion = nn.CrossEntropyLoss(weight=weight_tensor)
+    criterion = nn.CrossEntropyLoss(weight=weight_tensor, label_smoothing=0.1)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min", factor=0.5, patience=3

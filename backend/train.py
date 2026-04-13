@@ -113,44 +113,47 @@ def create_model():
     return model
 
 
-def train_epoch(model, dataloader, criterion, optimizer, device):
-    """Train for one epoch"""
+def train_epoch(model, dataloader, criterion, optimizer, device, scaler=None):
+    """Train for one epoch with optional AMP support."""
     model.train()
     running_loss = 0.0
     correct = 0
     total = 0
-    
+
+    use_amp = scaler is not None and device.type == "cuda"
+
     progress_bar = tqdm(dataloader, desc="Training")
-    
+
     for inputs, labels in progress_bar:
         inputs, labels = inputs.to(device), labels.to(device)
-        
-        # Zero gradients
+
         optimizer.zero_grad()
-        
-        # Forward pass
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        
-        # Backward pass
-        loss.backward()
-        optimizer.step()
-        
-        # Statistics
+
+        with torch.amp.autocast("cuda", enabled=use_amp):
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+
+        if use_amp and scaler is not None:
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            optimizer.step()
+
         running_loss += loss.item() * inputs.size(0)
         _, predicted = torch.max(outputs, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-        
-        # Update progress bar
+
         progress_bar.set_postfix({
             'loss': f'{loss.item():.4f}',
             'acc': f'{100 * correct / total:.2f}%'
         })
-    
+
     epoch_loss = running_loss / total
     epoch_acc = correct / total
-    
+
     return epoch_loss, epoch_acc
 
 
@@ -233,6 +236,8 @@ def train_model():
     print("=" * 60 + "\n")
     
     print(f"Using device: {Config.DEVICE}")
+    if use_amp:
+        print("Mixed precision (AMP): enabled")
     print(f"Dataset path: {dataset_path.absolute()}")
     
     # Create data transforms
@@ -301,15 +306,19 @@ def train_model():
     # Create model
     model = create_model().to(Config.DEVICE)
     print(f"\nModel created: EfficientNetV2-S")
-    
+
     # Loss function and optimizer
-    criterion = nn.CrossEntropyLoss(weight=class_weights)
+    criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)
     optimizer = optim.Adam(model.parameters(), lr=Config.LEARNING_RATE)
-    
+
     # Learning rate scheduler
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.5, patience=5
     )
+
+    # Automatic Mixed Precision scaler (no-op on CPU/MPS)
+    use_amp = Config.DEVICE.type == "cuda"
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
     
     # Training loop
     best_val_loss = float("inf")
@@ -328,7 +337,7 @@ def train_model():
         print("-" * 60)
         
         # Train
-        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, Config.DEVICE)
+        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, Config.DEVICE, scaler)
         
         # Validate
         val_loss, val_acc = validate(model, val_loader, criterion, Config.DEVICE)

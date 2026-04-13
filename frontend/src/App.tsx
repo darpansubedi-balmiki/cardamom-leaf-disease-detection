@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { ChangeEvent } from "react";
+import { useState, useCallback, useRef } from "react";
+import type { ChangeEvent, DragEvent } from "react";
 import { apiClient } from "./api/client";
 import type { PredictionResponse } from "./api/client";
 import { ADVICE_MAP } from "./utils/AdviceMap";
@@ -12,25 +12,41 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [result, setResult] = useState<PredictionResponse | null>(null);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const advice = result ? ADVICE_MAP[result.top_class] : undefined;
 
+  const applyFile = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file");
+      return;
+    }
+    setSelectedFile(file);
+    setError("");
+    setResult(null);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  }, []);
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    if (file) applyFile(file);
+  };
 
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        setError("Please select a valid image file");
-        return;
-      }
+  /* ---- Drag-and-drop handlers ---- */
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
-      setSelectedFile(file);
-      setError("");
-      setResult(null);
+  const handleDragLeave = () => setIsDragging(false);
 
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-    }
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) applyFile(file);
   };
 
   const handleAnalyze = async () => {
@@ -43,14 +59,15 @@ export default function App() {
     try {
       const response = await apiClient.predict(selectedFile);
       setResult(response);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Prediction error:", err);
 
-      if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
-      } else if (err.code === "ECONNABORTED") {
+      const axiosErr = err as { response?: { data?: { detail?: string } }; code?: string };
+      if (axiosErr.response?.data?.detail) {
+        setError(axiosErr.response.data.detail);
+      } else if (axiosErr.code === "ECONNABORTED") {
         setError("Request timeout. Please try again.");
-      } else if (err.code === "ERR_NETWORK") {
+      } else if (axiosErr.code === "ERR_NETWORK") {
         setError("Cannot connect to server. Make sure the backend is running.");
       } else {
         setError("An error occurred during analysis. Please try again.");
@@ -65,7 +82,6 @@ export default function App() {
     setPreviewUrl("");
     setError("");
     setResult(null);
-
     if (previewUrl) URL.revokeObjectURL(previewUrl);
   };
 
@@ -85,79 +101,86 @@ export default function App() {
           </p>
         </header>
 
-        {/* Upload section */}
-        <div className="mb-8 flex flex-wrap items-center justify-center gap-4">
-          <input
-            type="file"
-            id="file-input"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-
-          <label
-            htmlFor="file-input"
-            className="inline-flex cursor-pointer items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-700 px-8 py-3 text-base font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
-          >
-            Choose Image
-          </label>
-
+        {/* Drop zone */}
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={[
+            "mb-6 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-6 py-10 transition",
+            isDragging
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-slate-300 bg-slate-50 hover:border-indigo-400 hover:bg-indigo-50/40",
+          ].join(" ")}
+        >
+          <svg className="h-10 w-10 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          <p className="text-sm text-slate-600">
+            <span className="font-semibold text-indigo-600">Click to choose</span>
+            {" "}or drag &amp; drop an image here
+          </p>
           {selectedFile && (
-            <span className="max-w-75 truncate text-sm text-slate-600">
-              {selectedFile.name}
-            </span>
+            <span className="max-w-xs truncate text-xs text-slate-500">{selectedFile.name}</span>
           )}
         </div>
-        <div className={`grid gap-x-8 mb-8`}>
-          {/* Preview */}
-          {(!result && previewUrl) && (
-            <div className="text-center">
-              <h3 className="text-xl font-semibold text-slate-800">Preview</h3>
-              <p className="mt-2 text-sm italic text-slate-600">
-                This is the original image you uploaded. The analysis results are based on this image.
-              </p>
-              <div className="relative max-w-100 mx-auto mt-5">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="mx-auto max-h-100 w-full max-w-full rounded-xl object-contain"
-                />
 
-                {
-                  isLoading &&
-                  <div className="absolute inset-0 rounded-xl overflow-hidden">
-                    {/* scanning overlay */}
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          id="file-input"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
 
-                    {/* scanning line */}
-                    <div className="absolute left-0 w-full h-1 bg-green-400 animate-scan" />
-
-                    {/* text */}
-                    <div className="absolute bottom-3 left-0 right-0 text-center text-sm tracking-wide" />
-                  </div>
-                }
-              </div>
-            </div>
-          )}
-
-          {result &&
-            result.heatmap && (
+        {/* Preview + Heatmap side-by-side */}
+        {(previewUrl || (result && result.heatmap)) && (
+          <div className={`grid gap-6 mb-8 ${result?.heatmap ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+            {previewUrl && (
               <div className="text-center">
-                <h3 className="text-xl font-semibold text-slate-800">Grad-CAM Heatmap</h3>
-                <p className="mt-2 text-sm italic text-slate-600">
-                  This visualization shows which regions of the leaf influenced the prediction
+                <h3 className="text-lg font-semibold text-slate-800">Original Image</h3>
+                <p className="mt-1 text-xs italic text-slate-500">
+                  The image you uploaded
+                </p>
+                <div className="relative max-w-full mx-auto mt-3">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="mx-auto max-h-80 w-full max-w-full rounded-xl object-contain"
+                  />
+                  {isLoading && (
+                    <div className="absolute inset-0 rounded-xl overflow-hidden">
+                      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                      <div className="absolute left-0 w-full h-1 bg-green-400 animate-scan" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {result?.heatmap && (
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-slate-800">
+                  {result.cam_method === "gradcam++" ? "Grad-CAM++" : "Grad-CAM"} Heatmap
+                </h3>
+                <p className="mt-1 text-xs italic text-slate-500">
+                  Regions that influenced the prediction
                 </p>
                 <img
                   src={`data:image/png;base64,${result.heatmap}`}
                   alt="Grad-CAM Heatmap"
-                  className="mx-auto mt-5 max-h-125 w-full rounded-xl object-contain"
+                  className="mx-auto mt-3 max-h-80 w-full rounded-xl object-contain"
                 />
               </div>
             )}
-        </div>
+          </div>
+        )}
 
         {/* Action buttons */}
-        <div className="mb-8 flex flex-wrap justify-center">
+        <div className="mb-8 flex flex-wrap justify-center gap-3">
           <button
             onClick={handleAnalyze}
             disabled={!selectedFile || isLoading}
@@ -202,7 +225,6 @@ export default function App() {
             )}
 
             <div className="rounded-xl bg-linear-to-br from-slate-50 to-indigo-100 p-6 shadow-md sm:p-8">
-              {/* Result items */}
               <div className="space-y-4">
                 {/* Disease class */}
                 <div className="flex flex-col gap-2 rounded-lg bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -229,11 +251,56 @@ export default function App() {
                   />
                 </div>
 
-                {/* Uncertainty warning */}
+                {/* Uncertainty — enhanced: show top-K bars */}
                 {result.is_uncertain && (
-                  <div className="rounded-lg border border-amber-400 bg-amber-100 px-4 py-3 text-sm text-amber-900">
-                    ⚠️ Low confidence – prediction may be unreliable.
+                  <div className="rounded-lg border border-amber-400 bg-amber-100 px-4 py-4 text-sm text-amber-900 space-y-3">
+                    <p className="font-semibold">
+                      ⚠️ Low confidence – the model is unsure. Please retake the photo in better lighting
+                      or from a closer angle.
+                    </p>
+                    <p className="text-xs text-amber-800">Top candidates considered:</p>
+                    <div className="space-y-2">
+                      {result.top_k.map((item) => (
+                        <div key={item.class_name}>
+                          <div className="flex justify-between text-xs mb-0.5">
+                            <span>{item.class_name}</span>
+                            <span>{item.probability_pct.toFixed(1)}%</span>
+                          </div>
+                          <div className="h-2 w-full rounded bg-amber-200 overflow-hidden">
+                            <div
+                              className="h-full rounded bg-amber-500 transition-[width] duration-500"
+                              style={{ width: `${item.probability_pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                {/* Top-K breakdown (always shown) */}
+                {!result.is_uncertain && result.top_k.length > 1 && (
+                  <details className="rounded-lg border border-slate-200 bg-white p-3">
+                    <summary className="cursor-pointer text-sm font-semibold text-slate-600">
+                      All predictions
+                    </summary>
+                    <div className="mt-3 space-y-2">
+                      {result.top_k.map((item) => (
+                        <div key={item.class_name}>
+                          <div className="flex justify-between text-xs mb-0.5 text-slate-700">
+                            <span>{item.class_name}</span>
+                            <span>{item.probability_pct.toFixed(1)}%</span>
+                          </div>
+                          <div className="h-2 w-full rounded bg-slate-200 overflow-hidden">
+                            <div
+                              className="h-full rounded bg-indigo-400 transition-[width] duration-500"
+                              style={{ width: `${item.probability_pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
                 )}
 
                 {/* Severity section */}
@@ -275,7 +342,8 @@ export default function App() {
                     {result.severity_method === "heuristic" && (
                       <p className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-relaxed text-sky-900">
                         ℹ️ <strong>Estimate only.</strong> Severity was approximated from the
-                        Grad-CAM heatmap (heuristic method) and does not reflect true lesion
+                        {result.cam_method === "gradcam++" ? " Grad-CAM++ " : " Grad-CAM "}
+                        heatmap (heuristic method) and does not reflect true lesion
                         area. For accurate quantification, use mask-based labelling.
                       </p>
                     )}
@@ -322,19 +390,14 @@ export default function App() {
 
         {/* Footer */}
         <footer className="mt-12 border-t-2 border-slate-100 pt-6 text-center text-sm text-slate-400">
-          <p>Designed & Developed by Darpan Subedi</p>
+          <p>Designed &amp; Developed by Darpan Subedi</p>
         </footer>
       </div>
       <style>{`
         @keyframes scan {
-          0% {
-            top: 0%;
-          }
-          100% {
-            top: 100%;
-          }
+          0% { top: 0%; }
+          100% { top: 100%; }
         }
-
         .animate-scan {
           animation: scan 2s linear infinite;
         }

@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cardamom-backend:latest
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      MODEL_PATH: ${MODEL_PATH:-models/cardamom_model.pt}
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.60}
+      TOP_K: ${TOP_K:-3}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      SEVERITY_HEATMAP_THRESHOLD: ${SEVERITY_HEATMAP_THRESHOLD:-0.6}
+      SEVERITY_STAGE_THRESHOLDS: ${SEVERITY_STAGE_THRESHOLDS:-0,10,25,50,100}
+      BLUR_THRESHOLD: ${BLUR_THRESHOLD:-50.0}
+      MONO_THRESHOLD: ${MONO_THRESHOLD:-10.0}
+      # Optional: set API_KEY to enable authentication
+      API_KEY: ${API_KEY:-}
+      PREDICTION_LOG_PATH: /app/logs/predictions.log
+      INFERENCE_WORKERS: ${INFERENCE_WORKERS:-2}
+    volumes:
+      - ./backend/models:/app/models:ro
+      - prediction_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: cardamom-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
+
+volumes:
+  prediction_logs:

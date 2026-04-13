@@ -28,7 +28,19 @@ from app.models.classifier import (
 
 
 def _make_image_bytes(size: tuple[int, int] = (256, 256)) -> bytes:
-    img = Image.new("RGB", size, (80, 160, 40))
+    """Return JPEG bytes of a synthetic textured leaf image that passes quality checks."""
+    import numpy as np
+    w, h = size
+    # Checkerboard pattern ensures non-zero Laplacian variance (not blurry)
+    arr = np.zeros((h, w, 3), dtype=np.uint8)
+    block = max(16, w // 8)
+    for row in range(h):
+        for col in range(w):
+            if (row // block + col // block) % 2 == 0:
+                arr[row, col] = [80, 160, 40]
+            else:
+                arr[row, col] = [40, 100, 20]
+    img = Image.fromarray(arr, mode="RGB")
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
     return buf.getvalue()
@@ -87,8 +99,20 @@ class TestHealth:
         assert resp.status_code == 200
 
     def test_returns_ok_status(self, client):
-        resp = client.get("/health")
-        assert resp.json() == {"status": "ok"}
+        body = client.get("/health").json()
+        assert body["status"] == "ok"
+
+    def test_returns_model_loaded_field(self, client):
+        body = client.get("/health").json()
+        assert "model_loaded" in body
+
+    def test_returns_device_field(self, client):
+        body = client.get("/health").json()
+        assert "device" in body
+
+    def test_returns_model_classes_list(self, client):
+        body = client.get("/health").json()
+        assert isinstance(body.get("model_classes"), list)
 
 
 # ---------------------------------------------------------------------------
@@ -220,3 +244,61 @@ class TestPredictErrors:
     def test_missing_file_returns_422(self, client, patched_classifier):
         resp = client.post("/predict")
         assert resp.status_code == 422
+
+    def test_tiny_image_returns_400(self, client, patched_classifier):
+        """Images smaller than 64×64 px must be rejected with 400."""
+        tiny = _make_image_bytes(size=(32, 32))
+        resp = client.post(
+            "/predict",
+            files={"file": ("tiny.jpg", tiny, "image/jpeg")},
+        )
+        assert resp.status_code == 400
+
+    def test_monochromatic_image_returns_400(self, client, patched_classifier):
+        """Fully blank (zero std-dev) images must be rejected with 400."""
+        from PIL import Image as PILImage
+        buf = io.BytesIO()
+        PILImage.new("RGB", (256, 256), (255, 255, 255)).save(buf, format="JPEG")
+        resp = client.post(
+            "/predict",
+            files={"file": ("blank.jpg", buf.getvalue(), "image/jpeg")},
+        )
+        assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# /predict/batch
+# ---------------------------------------------------------------------------
+
+
+class TestBatchPredict:
+    def test_batch_returns_list(self, client, patched_classifier):
+        img = _make_image_bytes()
+        resp = client.post(
+            "/predict/batch",
+            files=[
+                ("files", ("leaf1.jpg", img, "image/jpeg")),
+                ("files", ("leaf2.jpg", img, "image/jpeg")),
+            ],
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, list)
+        assert len(body) == 2
+
+    def test_batch_too_many_files_returns_400(self, client, patched_classifier):
+        img = _make_image_bytes()
+        files = [("files", (f"leaf{i}.jpg", img, "image/jpeg")) for i in range(11)]
+        resp = client.post("/predict/batch", files=files)
+        assert resp.status_code == 400
+
+    def test_batch_each_item_has_top_class(self, client, patched_classifier):
+        img = _make_image_bytes()
+        resp = client.post(
+            "/predict/batch",
+            files=[("files", ("leaf.jpg", img, "image/jpeg"))],
+        )
+        assert resp.status_code == 200
+        for item in resp.json():
+            assert "top_class" in item
+
