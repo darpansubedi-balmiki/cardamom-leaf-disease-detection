@@ -199,7 +199,7 @@ def generate_gradcam_heatmap(
         Heatmap as numpy array with values in [0, 1].
     """
     if method == "gradcam++":
-        cam_obj: GradCAM | GradCAMPlusPlus = GradCAMPlusPlus(model, target_layer)
+        cam_obj: GradCAMPlusPlus | GradCAM = GradCAMPlusPlus(model, target_layer)
     else:
         cam_obj = GradCAM(model, target_layer)
 

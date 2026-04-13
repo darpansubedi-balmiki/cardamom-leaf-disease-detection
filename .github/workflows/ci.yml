@@ -11,6 +11,8 @@ jobs:
   backend:
     name: Backend (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -52,6 +54,8 @@ jobs:
   frontend:
     name: Frontend (Node 20)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     defaults:
       run:

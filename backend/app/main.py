@@ -310,7 +310,7 @@ def _check_image_quality(image: Image.Image) -> None:
             ),
         )
 
-    arr = np.array(image, dtype=np.float32)
+    arr = np.array(image.resize((64, 64), Image.BILINEAR), dtype=np.float32)
     if arr.std() < _MONO_THRESHOLD:
         raise HTTPException(
             status_code=400,

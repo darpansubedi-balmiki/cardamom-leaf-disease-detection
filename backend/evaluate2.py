@@ -219,6 +219,11 @@ def plot_per_class_metrics(y_true, y_pred, class_names, save_path="per_class_met
     print(f"✓ Per-class metrics saved to: {save_path}")
 
 
+def _class_colors(num_classes: int) -> np.ndarray:
+    """Return an array of ``num_classes`` distinct RGBA colors."""
+    return plt.cm.Set1(np.linspace(0, 1, num_classes))  # type: ignore[attr-defined]
+
+
 def plot_roc_curves(y_true, y_prob, class_names, save_path="roc_curves.png"):
     """Plot one-vs-rest ROC curves and compute macro ROC-AUC."""
 
@@ -228,7 +233,7 @@ def plot_roc_curves(y_true, y_prob, class_names, save_path="roc_curves.png"):
 
     fig, ax = plt.subplots(figsize=(10, 7))
 
-    colors = plt.cm.Set1(np.linspace(0, 1, num_classes))  # type: ignore[attr-defined]
+    colors = _class_colors(num_classes)
     aucs = []
     for i, (cls, color) in enumerate(zip(class_names, colors)):
         fpr, tpr, _ = roc_curve(y_onehot[:, i], y_prob[:, i])
@@ -262,7 +267,7 @@ def plot_pr_curves(y_true, y_prob, class_names, save_path="pr_curves.png"):
 
     fig, ax = plt.subplots(figsize=(10, 7))
 
-    colors = plt.cm.Set1(np.linspace(0, 1, num_classes))  # type: ignore[attr-defined]
+    colors = _class_colors(num_classes)
     aps = []
     for i, (cls, color) in enumerate(zip(class_names, colors)):
         precision, recall, _ = precision_recall_curve(y_onehot[:, i], y_prob[:, i])
