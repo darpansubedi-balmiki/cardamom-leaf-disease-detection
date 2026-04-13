@@ -59,14 +59,15 @@ export default function App() {
     try {
       const response = await apiClient.predict(selectedFile);
       setResult(response);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Prediction error:", err);
 
-      if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
-      } else if (err.code === "ECONNABORTED") {
+      const axiosErr = err as { response?: { data?: { detail?: string } }; code?: string };
+      if (axiosErr.response?.data?.detail) {
+        setError(axiosErr.response.data.detail);
+      } else if (axiosErr.code === "ECONNABORTED") {
         setError("Request timeout. Please try again.");
-      } else if (err.code === "ERR_NETWORK") {
+      } else if (axiosErr.code === "ERR_NETWORK") {
         setError("Cannot connect to server. Make sure the backend is running.");
       } else {
         setError("An error occurred during analysis. Please try again.");

@@ -11,13 +11,13 @@ class CardamomClassifier(nn.Module):
     """
     EfficientNetV2-S based classifier for cardamom leaf disease detection.
     """
-    
+
     def __init__(self, num_classes=3):
         super(CardamomClassifier, self).__init__()
-        
+
         # Load EfficientNetV2-S backbone
         self.backbone = models.efficientnet_v2_s(weights=None)
-        
+
         # Replace classifier
         num_features = self.backbone.classifier[1].in_features
         self.backbone.classifier = nn.Sequential(
@@ -27,7 +27,7 @@ class CardamomClassifier(nn.Module):
             nn.Dropout(p=0.2, inplace=True),
             nn.Linear(512, num_classes)
         )
-        
+
     def forward(self, x):
         return self.backbone(x)
 
@@ -35,17 +35,17 @@ class CardamomClassifier(nn.Module):
 def load_model(device: torch.device, model_path: str = "models/cardamom_model.pt") -> tuple[nn.Module, bool]:
     """
     Load the cardamom classification model.
-    
+
     Args:
         device: PyTorch device (cuda/cpu)
         model_path: Path to model weights
-        
+
     Returns:
         Tuple of (loaded model, is_trained flag)
     """
     model = CardamomClassifier(num_classes=3)
     is_trained = False
-    
+
     # Try to load weights if available
     model_file = Path(model_path)
     if model_file.exists():
@@ -61,8 +61,8 @@ def load_model(device: torch.device, model_path: str = "models/cardamom_model.pt
         print(f"⚠️  Model file not found at {model_path}")
         print("⚠️  Using randomly initialized weights (UNTRAINED PLACEHOLDER MODEL)")
         print("⚠️  Predictions will be inaccurate - please train the model first!")
-        print(f"⚠️  See MODEL_TRAINING.md for training instructions")
-    
+        print("⚠️  See MODEL_TRAINING.md for training instructions")
+
     model = model.to(device)
     model.eval()  # Set to evaluation mode
     return model, is_trained
