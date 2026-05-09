@@ -59,47 +59,54 @@ EXTENSIONS = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"}
 # Perturbation definitions
 # ---------------------------------------------------------------------------
 
-def _to_pil_transform(pil_fn):
-    """Wrap a PIL → PIL function as a torchvision-compatible Transform."""
-    class _T:
-        def __call__(self, img):
-            return pil_fn(img)
-    return _T()
+# Top-level picklable classes (required for num_workers > 0 with spawn)
+
+class _PilTransformWrapper:
+    """Wraps a picklable PIL → PIL callable as a torchvision-compatible transform."""
+    def __init__(self, pil_fn):
+        self.pil_fn = pil_fn
+
+    def __call__(self, img):
+        return self.pil_fn(img)
 
 
-def _gaussian_blur(radius: float = 3.0):
-    def fn(img: Image.Image) -> Image.Image:
-        return img.filter(ImageFilter.GaussianBlur(radius=radius))
-    return fn
+class _IdentityTransform:
+    """PIL identity transform (replaces unpicklable lambda)."""
+    def __call__(self, img):
+        return img
 
 
-def _brightness_reduce(factor: float = 0.4):
-    """factor < 1 darkens the image."""
-    def fn(img: Image.Image) -> Image.Image:
-        return ImageEnhance.Brightness(img).enhance(factor)
-    return fn
+class _GaussianBlur:
+    """Apply Gaussian blur to a PIL image."""
+    def __init__(self, radius: float = 3.0):
+        self.radius = radius
+
+    def __call__(self, img: Image.Image) -> Image.Image:
+        return img.filter(ImageFilter.GaussianBlur(radius=self.radius))
 
 
-def _add_gaussian_noise(std: float = 0.15):
+class _BrightnessReduce:
+    """Reduce brightness of a PIL image. factor < 1 darkens."""
+    def __init__(self, factor: float = 0.4):
+        self.factor = factor
+
+    def __call__(self, img: Image.Image) -> Image.Image:
+        return ImageEnhance.Brightness(img).enhance(self.factor)
+
+
+class _AddGaussianNoise:
     """Add Gaussian noise in [0,1] float space after ToTensor."""
-    class _NoiseTf:
-        def __call__(self, tensor: torch.Tensor) -> torch.Tensor:
-            noise = torch.randn_like(tensor) * std
-            return (tensor + noise).clamp(0.0, 1.0)
-    return _NoiseTf()
+    def __init__(self, std: float = 0.15):
+        self.std = std
+
+    def __call__(self, tensor: torch.Tensor) -> torch.Tensor:
+        noise = torch.randn_like(tensor) * self.std
+        return (tensor + noise).clamp(0.0, 1.0)
 
 
-def _random_rotation(degrees: float = 45.0):
-    return transforms.RandomRotation(degrees=degrees)
-
-
-def _center_crop(crop_ratio: float = 0.75):
-    """Crop the centre crop_ratio × H × W, then resize back."""
-    crop_size = int(IMG_SIZE * crop_ratio)
-    return transforms.Compose([
-        transforms.CenterCrop(crop_size),
-        transforms.Resize((IMG_SIZE, IMG_SIZE)),
-    ])
+def _to_pil_transform(pil_fn):
+    """Wrap a picklable PIL → PIL callable as a torchvision-compatible Transform."""
+    return _PilTransformWrapper(pil_fn)
 
 
 _NORMALIZE = transforms.Normalize([0.485, 0.456, 0.406],
@@ -123,12 +130,12 @@ def _build_transform(pil_augment=None, tensor_augment=None):
 # Registry of perturbations: name → transform
 PERTURBATIONS: dict[str, Any] = {
     "Baseline (clean)": _build_transform(),
-    "Blur (r=3)": _build_transform(pil_augment=_gaussian_blur(3.0)),
-    "Blur (r=5)": _build_transform(pil_augment=_gaussian_blur(5.0)),
-    "Low brightness (×0.4)": _build_transform(pil_augment=_brightness_reduce(0.4)),
-    "Low brightness (×0.2)": _build_transform(pil_augment=_brightness_reduce(0.2)),
-    "Gaussian noise (σ=0.10)": _build_transform(tensor_augment=_add_gaussian_noise(0.10)),
-    "Gaussian noise (σ=0.20)": _build_transform(tensor_augment=_add_gaussian_noise(0.20)),
+    "Blur (r=3)": _build_transform(pil_augment=_GaussianBlur(3.0)),
+    "Blur (r=5)": _build_transform(pil_augment=_GaussianBlur(5.0)),
+    "Low brightness (×0.4)": _build_transform(pil_augment=_BrightnessReduce(0.4)),
+    "Low brightness (×0.2)": _build_transform(pil_augment=_BrightnessReduce(0.2)),
+    "Gaussian noise (σ=0.10)": _build_transform(tensor_augment=_AddGaussianNoise(0.10)),
+    "Gaussian noise (σ=0.20)": _build_transform(tensor_augment=_AddGaussianNoise(0.20)),
     "Rotation (±45°)": _build_transform(pil_augment=None,
                                          tensor_augment=None),  # handled below
     "Center crop (75%)": _build_transform(),  # handled below
@@ -137,7 +144,7 @@ PERTURBATIONS: dict[str, Any] = {
 # Build rotation / crop transforms separately (they need special compose order)
 PERTURBATIONS["Rotation (±45°)"] = transforms.Compose([
     _RESIZE,
-    _to_pil_transform(lambda img: img),   # identity (PIL)
+    _IdentityTransform(),             # replaces unpicklable lambda
     transforms.RandomRotation(degrees=45),
     _TO_TENSOR,
     _NORMALIZE,
@@ -301,7 +308,7 @@ def main() -> None:
             "delta_f1_pp": float(f1 - baseline_f1) if baseline_f1 is not None else 0.0,
         })
 
-    # ── Save JSON ────────────────────────────────────────────────────────────
+    # ── Save JSON ──────────────────────────────────────────────────────────
     summary = {
         "model": "EfficientNetV2-S",
         "dataset": DATASET_PATH,

@@ -1,1 +1,2 @@
 path,true_label,predicted_label,confidence
+dataset/test/healthy/Healthy (878).jpg,healthy,spot,0.7054

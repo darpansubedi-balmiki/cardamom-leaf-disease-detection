@@ -8,11 +8,11 @@
     "spot"
   ],
   "n_total": 391,
-  "n_correct": 391,
-  "n_wrong": 0,
-  "accuracy": 1.0,
-  "correct_mean_confidence": 0.999745572619426,
-  "wrong_mean_confidence": null,
+  "n_correct": 390,
+  "n_wrong": 1,
+  "accuracy": 0.9974424552429667,
+  "correct_mean_confidence": 0.9203202967460339,
+  "wrong_mean_confidence": 0.7053614258766174,
   "confusion_matrix": [
     [
       90,
@@ -22,9 +22,9 @@
     ],
     [
       0,
-      84,
+      83,
       0,
-      0
+      1
     ],
     [
       0,
@@ -39,5 +39,11 @@
       92
     ]
   ],
-  "top_confusion_pairs": []
+  "top_confusion_pairs": [
+    {
+      "true": "healthy",
+      "predicted": "spot",
+      "count": 1
+    }
+  ]
 }

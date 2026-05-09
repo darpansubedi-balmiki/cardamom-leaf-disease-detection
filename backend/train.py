@@ -236,8 +236,6 @@ def train_model():
     print("=" * 60 + "\n")
     
     print(f"Using device: {Config.DEVICE}")
-    if use_amp:
-        print("Mixed precision (AMP): enabled")
     print(f"Dataset path: {dataset_path.absolute()}")
     
     # Create data transforms
@@ -319,7 +317,8 @@ def train_model():
     # Automatic Mixed Precision scaler (no-op on CPU/MPS)
     use_amp = Config.DEVICE.type == "cuda"
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
-    
+    if use_amp:
+        print("Mixed precision (AMP): enabled")
     # Training loop
     best_val_loss = float("inf")
     best_val_acc = 0.0  # keep for printing only

@@ -1,0 +1,75 @@
+{
+  "model": "EfficientNetV2-S",
+  "dataset": "dataset",
+  "classes": [
+    "blight",
+    "healthy",
+    "other",
+    "spot"
+  ],
+  "perturbations": [
+    {
+      "perturbation": "Baseline (clean)",
+      "accuracy": 0.9974424552429642,
+      "macro_f1": 0.9971516426601142,
+      "delta_accuracy_pp": 0.0,
+      "delta_f1_pp": 0.0
+    },
+    {
+      "perturbation": "Blur (r=3)",
+      "accuracy": 0.7365728900255735,
+      "macro_f1": 0.6478678279141612,
+      "delta_accuracy_pp": -26.08695652173907,
+      "delta_f1_pp": -34.92838147459531
+    },
+    {
+      "perturbation": "Blur (r=5)",
+      "accuracy": 0.47826086956521613,
+      "macro_f1": 0.4374578375741473,
+      "delta_accuracy_pp": -51.9181585677748,
+      "delta_f1_pp": -55.9693805085967
+    },
+    {
+      "perturbation": "Low brightness (\u00d70.4)",
+      "accuracy": 0.9999999999999973,
+      "macro_f1": 0.9999999999994895,
+      "delta_accuracy_pp": 0.2557544757033128,
+      "delta_f1_pp": 0.2848357339375269
+    },
+    {
+      "perturbation": "Low brightness (\u00d70.2)",
+      "accuracy": 0.9923273657288977,
+      "macro_f1": 0.99236147409191,
+      "delta_accuracy_pp": -0.511508951406654,
+      "delta_f1_pp": -0.4790168568204223
+    },
+    {
+      "perturbation": "Gaussian noise (\u03c3=0.10)",
+      "accuracy": 0.9079283887468007,
+      "macro_f1": 0.9119412593667685,
+      "delta_accuracy_pp": -8.951406649616345,
+      "delta_f1_pp": -8.521038329334573
+    },
+    {
+      "perturbation": "Gaussian noise (\u03c3=0.20)",
+      "accuracy": 0.5294117647058809,
+      "macro_f1": 0.44421420702284165,
+      "delta_accuracy_pp": -46.80306905370833,
+      "delta_f1_pp": -55.29374356372726
+    },
+    {
+      "perturbation": "Rotation (\u00b145\u00b0)",
+      "accuracy": 0.9999999999999973,
+      "macro_f1": 0.9999999999994895,
+      "delta_accuracy_pp": 0.2557544757033128,
+      "delta_f1_pp": 0.2848357339375269
+    },
+    {
+      "perturbation": "Center crop (75%)",
+      "accuracy": 0.9999999999999973,
+      "macro_f1": 0.9999999999994895,
+      "delta_accuracy_pp": 0.2557544757033128,
+      "delta_f1_pp": 0.2848357339375269
+    }
+  ]
+}
